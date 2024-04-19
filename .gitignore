@@ -9,3 +9,6 @@ venv.bak/
 
 # Caches
 __pycache__/
+
+# vscode setting
+.vscode

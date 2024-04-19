@@ -14,7 +14,6 @@ models:
       - name: id
         description: "The primary key for this table"
         tests:
-          - unique
           - not_null
       - name: uname
         description: "name field"
@@ -23,4 +22,9 @@ models:
       - name: eeeemail
         description: "contact field"
         tests:
+          - not_null
+      - name: row
+        description: "some fake autoincrement"
+        tests:
+          - unique
           - not_null

@@ -35,3 +35,14 @@ be overwritten by more nested options within the model layers.
     ```
 
 - When using VScode install the extension [Power User for dbt Core](https://marketplace.visualstudio.com/items?itemName=innoverio.vscode-dbt-power-user) or something similar.
+- Install a package by adding a `packages.yml` to the dbt project root and pull it into the project by running `dbt deps`.
+The template engine will now offer the respective macro functionality.
+
+## Obervations
+
+- [notes on auto-increment](https://discourse.getdbt.com/t/can-i-create-an-auto-incrementing-id-in-dbt/579/2)
+
+## References
+
+- [SQL commands](https://docs.getdbt.com/sql-reference) in dbt
+- [time-related macros for dbt](https://hub.getdbt.com/calogica/dbt_date/latest/)

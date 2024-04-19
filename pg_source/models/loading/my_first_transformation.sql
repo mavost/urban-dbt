@@ -12,15 +12,9 @@
 with source_data as (
 
     select 
-    id, user_name as uname, email as eeeemail from {{ source('my_source', 'users') }}
+    id,  cast({{ dbt_date.to_unixtimestamp(dbt_date.now())}} as integer) + row_number() OVER(ORDER BY id) AS row, user_name as uname, email as eeeemail from {{ source('my_source', 'users') }}
 
 )
 
 select *
 from source_data
-
-/*
-    Uncomment the line below to remove records with null `id` values
-*/
-
--- where id is not null
