@@ -1,0 +1,26 @@
+
+version: 2
+
+sources:
+  - name: my_source
+    schema: source
+    tables:
+      - name: users
+
+models:
+  - name: my_first_transformation
+    description: "A starter dbt model"
+    columns:
+      - name: id
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null
+      - name: uname
+        description: "name field"
+        tests:
+          - not_null
+      - name: eeeemail
+        description: "contact field"
+        tests:
+          - not_null

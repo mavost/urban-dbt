@@ -36,3 +36,6 @@ models:
     example:
 #      +materialized: view
       +materialized: table
+    loading:
+#      +materialized: view
+      +materialized: table

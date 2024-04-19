@@ -33,3 +33,5 @@ be overwritten by more nested options within the model layers.
     curl https://raw.githubusercontent.com/fishtown-analytics/dbt-completion.bash/master/dbt-completion.bash > ~/.dbt-completion.bash
     echo 'source ~/.dbt-completion.bash' >> ~/.bash_profile
     ```
+
+- When using VScode install the extension [Power User for dbt Core](https://marketplace.visualstudio.com/items?itemName=innoverio.vscode-dbt-power-user) or something similar.

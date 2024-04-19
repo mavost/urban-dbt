@@ -7,13 +7,12 @@
     Try changing "table" to "view" below
 */
 
-{{ config(materialized='table', alias='users')}}
+{{ config(materialized='table', alias='userloading')}}
 
 with source_data as (
 
-    select 1 as id
-    union all
-    select null as id
+    select 
+    id, user_name as uname, email as eeeemail from {{ source('my_source', 'users') }}
 
 )
 
