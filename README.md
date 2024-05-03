@@ -6,6 +6,10 @@
 
 ## Description
 
+## General tool setup
+
+## Simple Example
+
 1. Set up a docker container with a postgres container instance, admin role credentials and connection string should used
 to connect to any DB admin tool of choice, e.g., [DBeaver](https://dbeaver.io/).
 
@@ -24,9 +28,76 @@ be overwritten by more nested options within the model layers.
 
 7. Run  `dbt run --select "models/example/my_first_dbt_model.sql"` for a "hello world" experience.
 
+## A more elaborate example
+
+1. Switch directory to the `jaffle_shop-dev` model
+
 ## Helpers
 
-- Install the command completion for dbt as specified, [here](https://github.com/dbt-labs/dbt-completion.bash).
+1. Using a linter like *sqlfluff* will boost the code quality especially given the lack of enforced standardization
+and evolving SQL habits within a dev team:
+
+    - Start with package installation
+
+        ```bash
+        source <dbt-env>
+        pip install sqlfluff sqlfluff-templater-dbt
+        ```
+
+    - Add a `.sqlfluff` config file to the project root, see, `jaffle_shop-dev`:
+
+        ```bash
+        [sqlfluff]
+        dialect = postgres
+        templater = dbt
+        runaway_limit = 10
+        max_line_length = 80
+        indent_unit = space
+
+        [sqlfluff:indentation]
+        tab_space_size = 4
+
+        [sqlfluff:layout:type:comma]
+        spacing_before = touch
+        line_position = trailing
+
+        [sqlfluff:rules:capitalisation.keywords] 
+        capitalisation_policy = lower
+
+        [sqlfluff:rules:aliasing.table]
+        aliasing = explicit
+
+        [sqlfluff:rules:aliasing.column]
+        aliasing = explicit
+
+        [sqlfluff:rules:aliasing.expression]
+        allow_scalar = False
+
+        [sqlfluff:rules:capitalisation.identifiers]
+        extended_capitalisation_policy = lower
+
+        [sqlfluff:rules:capitalisation.functions]
+        capitalisation_policy = lower
+
+        [sqlfluff:rules:capitalisation.literals]
+        capitalisation_policy = lower
+
+        [sqlfluff:rules:ambiguous.column_references]  # Number in group by
+        group_by_and_order_by_style = explicit
+        ```
+
+    - Add a `.sqlfluffingnore` config file to the project root, see, `jaffle_shop-dev`:
+
+        ```bash
+        dbt_packages/
+        target/
+        ```
+
+    - From the dbt project root, either invole `sqlfluff lint` to list the code quality issues in the
+    current version of the SQL code or run `sqlfluff fix` to auto-correct the issues on the fly.
+    Note, that some issues need to be fixed manually.
+
+2. Install the command completion for dbt as specified, [here](https://github.com/dbt-labs/dbt-completion.bash).
 
     ```bash
     cd ~
@@ -34,8 +105,9 @@ be overwritten by more nested options within the model layers.
     echo 'source ~/.dbt-completion.bash' >> ~/.bash_profile
     ```
 
-- When using VScode install the extension [Power User for dbt Core](https://marketplace.visualstudio.com/items?itemName=innoverio.vscode-dbt-power-user) or something similar.
-- Install a package by adding a `packages.yml` to the dbt project root and pull it into the project by running `dbt deps`.
+3. When using VScode install the extension [Power User for dbt Core](https://marketplace.visualstudio.com/items?itemName=innoverio.vscode-dbt-power-user) or something similar.
+
+4. Install a package by adding a `packages.yml` to the dbt project root and pull it into the project by running `dbt deps`.
 The template engine will now offer the respective macro functionality.
 
 ## Obervations
@@ -46,3 +118,4 @@ The template engine will now offer the respective macro functionality.
 
 - [SQL commands](https://docs.getdbt.com/sql-reference) in dbt
 - [time-related macros for dbt](https://hub.getdbt.com/calogica/dbt_date/latest/)
+- [dbt jaffle-shop example](https://github.com/dbt-labs/jaffle-shop)
