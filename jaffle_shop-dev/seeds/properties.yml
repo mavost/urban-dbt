@@ -1,0 +1,18 @@
+version: 2
+
+seeds:
+  - name: raw_customers
+    description: "some customers"
+    docs:
+      show: true
+  - name: raw_orders
+    description: "some orders"
+    docs:
+      show: true
+  - name: raw_payments
+    description: "some payments"
+    docs:
+      show: true
+    config:
+      column_types:
+        amount: numeric(20,2)
