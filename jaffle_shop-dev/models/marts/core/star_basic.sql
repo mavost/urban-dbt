@@ -24,4 +24,4 @@ final as (
 
 )
 
-select * from final
+select * from final order by customer_id, order_date, order_id
