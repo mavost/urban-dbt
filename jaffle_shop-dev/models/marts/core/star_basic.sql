@@ -1,15 +1,27 @@
-{{ config(materialized='view')}}
-with final as (
+{{ config(materialized='view') }}
 
-    SELECT
+with dim_customers as (
+
+    select * from {{ ref('dim_customers') }}
+
+),
+
+fct_orders as (
+
+    select * from {{ ref('fct_orders') }}
+
+),
+
+final as (
+
+    select
         dim_customers.*,
         fct_orders.amount,
         fct_orders.order_date,
         fct_orders.order_id
-    FROM {{ ref('dim_customers') }}
-    LEFT JOIN {{ ref('fct_orders') }} USING (customer_id)
-    ORDER BY dim_customers.customer_id, fct_orders.order_date, fct_orders.order_id
-    
+    from dim_customers
+    left join fct_orders on dim_customers.customer_id = fct_orders.customer_id
+
 )
 
 select * from final

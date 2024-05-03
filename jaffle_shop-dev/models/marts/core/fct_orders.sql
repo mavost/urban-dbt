@@ -1,4 +1,6 @@
-{% set payment_methods = ['credit_card', 'coupon', 'bank_transfer', 'gift_card'] %}
+{% set payment_methods = [
+    'credit_card', 'coupon', 'bank_transfer', 'gift_card'
+] %}
 
 with orders as (
 
@@ -22,15 +24,15 @@ final as (
 
         {% for payment_method in payment_methods -%}
 
-        order_payments.{{payment_method}}_amount,
+            order_payments.{{ payment_method }}_amount,
 
         {% endfor -%}
 
-        order_payments.total_amount::numeric(20,2) as amount
+        order_payments.total_amount::numeric(20, 2) as amount
 
     from orders
 
-    left join order_payments using (order_id)
+    left join order_payments on orders.order_id = order_payments.order_id
 
 )
 
