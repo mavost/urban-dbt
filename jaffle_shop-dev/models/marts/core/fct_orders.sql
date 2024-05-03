@@ -26,7 +26,7 @@ final as (
 
         {% endfor -%}
 
-        order_payments.total_amount::numeric(6,2) as amount
+        order_payments.total_amount::numeric(20,2) as amount
 
     from orders
 
