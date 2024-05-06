@@ -1,0 +1,8 @@
+.prettierrc
+*.html
+*.md
+*.json
+*.yml
+*.log
+*.sql
+target/**
