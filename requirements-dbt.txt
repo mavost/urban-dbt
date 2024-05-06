@@ -1,0 +1,11 @@
+chardet==5.2.0
+dbt-core==1.7.13
+dbt-postgres==1.7.13
+dbt-snowflake==1.7.3
+jupyter==1.0.0
+numpy==1.26.4
+pandas==2.2.2
+python-dotenv==1.0.1
+requests==2.31.0
+sqlfluff==3.0.5
+sqlfluff-templater-dbt==3.0.5
