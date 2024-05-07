@@ -13,6 +13,7 @@ VENV_NAME ?= dbt_env
 PYTHON = $(VENV_NAME)/bin/python
 FLAKE8 = $(VENV_NAME)/bin/flake8
 BLACK = $(VENV_NAME)/bin/black
+SQLFLUFF = $(VENV_NAME)/bin/sqlfluff
 PRECOMMIT = $(VENV_NAME)/bin/pre-commit
 PRETTIER = npx prettier
 
@@ -24,8 +25,7 @@ help: ## display this help
 	@printf "\n"
 
 ##@ Preparation
-setup_env: $(PYTHON) $(FLAKE8) $(BLACK) ## install local dev environment
-
+setup_env: $(PYTHON) $(FLAKE8) $(BLACK) $(SQLFLUFF) $(PRECOMMIT) ## install local dev environment
 
 
 $(PYTHON): $(REQUIREMENTS) ## install local python environment
@@ -40,14 +40,18 @@ $(BLACK): $(REQUIREMENTS) ## install reformatter in local dev environment
 	python3 -m venv $(VENV_NAME)
 	$(VENV_NAME)/bin/pip install -r $<
 
-$(PRETTIER): ## install prettier yaml reformatter using node package manager
-	npm install --save-dev --save-exact prettier
+$(SQLFLUFF): $(REQUIREMENTS) ## install sql-fluff in local dev environment
+	python3 -m venv $(VENV_NAME)
+	$(VENV_NAME)/bin/pip install -r $<
 
 $(PRECOMMIT): $(REQUIREMENTS) ## install pre-commit in local dev environment
 	python3 -m venv $(VENV_NAME)
 	$(VENV_NAME)/bin/pip install -r $<
 
-.PHONY: clean
+$(PRETTIER): ## install prettier yaml reformatter using node package manager
+	npm install --save-dev --save-exact prettier
+
+.PHONY: clean setup_env
 
 ##@ Operations
 black_dry: ## format your python code using black - dry run
@@ -62,6 +66,14 @@ flake8_lint: ## run flake8 linter - (see, setup.cfg)
 	$(FLAKE8) --version
 	$(FLAKE8)
 
+sqlfluff_dry: ## format your sql using sqlfluff - dry run
+	$(SQLFLUFF) --version
+	$(SQLFLUFF) lint
+
+sqlfluff_lint: ## format your sql using sqlfluff - applied (see, .sqlfluff)
+	$(SQLFLUFF) --version
+	$(SQLFLUFF) fix
+
 prettier_dry: ## format your yaml using prettier - dry run
 	$(PRETTIER) --version
 	$(PRETTIER) . --check
@@ -69,7 +81,6 @@ prettier_dry: ## format your yaml using prettier - dry run
 prettier_reformat: ## format your yaml using prettier - applied (see, .prettierrc)
 	$(PRETTIER) --version
 	$(PRETTIER) . --write
-
 
 pre-commit-full: ## run pre commit checks (see, .pre-commit-config.yaml)
 	$(PRECOMMIT) --version
