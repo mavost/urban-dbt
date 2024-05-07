@@ -1,32 +1,50 @@
-# A simple dbt experiment
+# A simple dbt working environment
 
-*Date:* 2024-01-18  
+*Date:* 2024-05-07  
 *Author:* MvS  
-*keywords:* data engineering, dbt, data build tool
+*keywords:* data engineering, dbt, data build tool, linter
 
 ## Description
 
+An enhanced working environment to develop and deploy dbt models using code quality tooling
+for its various moving parts.
+
+## Prerequisites
+
+- This project was created on Ubuntu flavor linux,
+- using Python version 3.10,
+- a Node installation v.18.18 or greater, see `nvm ls`,
+- and Gnu make.
+- We assume that either the `~/.dbt/profile.yml` will point to a working data
+storage or the developer is familiar with setting up, e.g., a docker container with a postgreSQL
+instance on his laptop.
+
 ## General tool setup
+
+- Run `make help` to get an overview of various helper functions.
+- Run `make setup-env` to install a python environment into the git project which will
+include the relevant dependencies.
 
 ## Simple Example
 
-1. Set up a docker container with a postgres container instance, admin role credentials and connection string should used
+1. Either use a pre-existing database connection or set up a docker container, e.g.,
+with a postgreSQL instance, admin role credentials and connection string should used
 to connect to any DB admin tool of choice, e.g., [DBeaver](https://dbeaver.io/).
 
-2. Create **source** schema on local instance and populate it with a table and some data, see [script](./scripts/00_source.sql).
+2. (Optional): Creating a new dbt project:
+    - For *dbt_toy_model*, create **source** schema on database instance and populate it
+    with a table containing some data, see [script](./scripts/00_source.sql).
 
-3. Create a repository or project folder to host all data engineering and use this directory.
+    - Create a project folder *<project_name>* to host all dbt data engineering and use this directory.
 
-4. Run `dbt init`and fill out the required info on DB connectivity, specify **project name** and **target** schema which dbt will work on, pulling
-data from the **source**. A project environment will created in the directory and a `~/.dbt/profile.yml` will store the connectivity information.
-Both will be linked via a `dbt_project.yml` file in the project root.
+    - Run `dbt init`and fill out the required info on DB connectivity, specify *<project_name>* and **target** schema which dbt will work on, pulling data from the **source**. A project environment will created in the directory and a `~/.dbt/profile.yml` will store the connectivity information. Both will be linked via a `dbt_project.yml` file in the project root.
 
-5. Run `cd <project_name> && dbt debug` to verify that the connection to the postgres instance is working.
+3. Run `cd <project_name> && dbt debug` to verify that the connection to the postgres instance is working.
 
-6. Observe the nested configuration between `*.yml` files where more general options can
+4. Observe the nested configuration between `*.yml` files where more general options can
 be overwritten by more nested options within the model layers.
 
-7. Run  `dbt run --select "models/example/my_first_dbt_model.sql"` for a "hello world" experience.
+5. Run  `dbt run --select "models/example/my_first_dbt_model.sql"` for a "hello world" experience.
 
 ## A more elaborate example
 
@@ -36,7 +54,7 @@ be overwritten by more nested options within the model layers.
 
 1. Install the command completion for dbt as specified, [here](https://github.com/dbt-labs/dbt-completion.bash).
 
-    ```bash
+    ```shell
     cd ~
     curl https://raw.githubusercontent.com/fishtown-analytics/dbt-completion.bash/master/dbt-completion.bash > ~/.dbt-completion.bash
     echo 'source ~/.dbt-completion.bash' >> ~/.bash_profile
@@ -55,9 +73,7 @@ The template engine will now offer the respective macro functionality.
 
 Convenience features included were:
 
-- [Pre-commit](https://pre-commit.com/) hooks to check for fundamental issues with the code base before adding them to git,
-
-  - Invoked manually via, `pre-commit run --all-files`.
+- A [Makefile](https://www.gnu.org/software/make/manual/) to set up the environments and call the features below.
 
 - Automatic code reformatting following PEP8 using [black](https://black.readthedocs.io/en/stable/index.html),
 
@@ -67,25 +83,29 @@ Convenience features included were:
 
   - Flake8 linter integrated in aforementioned git hooks (and configured in *setup.cfg*)
 
-- Using a linter like *sqlfluff* will boost the code quality especially given the lack of enforced standardization
-and evolving SQL habits within a dev team:
+- Using [sqlfluff](https://docs.sqlfluff.com/en/stable/) as a linter will boost the dbt
+code quality especially given the lack of enforced standardization and evolving SQL habits
+within a dev team:
 
   - Start with package installation
 
-    ```bash
+    ```shell
     source <dbt-env>
     pip install sqlfluff sqlfluff-templater-dbt
     ```
 
-  - Add a `.sqlfluff` config file to the project root, see, `jaffle_shop-dev`:
+  - Add a `.sqlfluff` config file to the project root:
 
-    ```bash
+    ```yaml
     [sqlfluff]
     dialect = postgres
     templater = dbt
     runaway_limit = 10
     max_line_length = 80
     indent_unit = space
+
+    [sqlfluff:templater:dbt]
+    project_dir = <dbt_project-dir>
 
     [sqlfluff:indentation]
     tab_space_size = 4
@@ -119,16 +139,23 @@ and evolving SQL habits within a dev team:
     group_by_and_order_by_style = explicit
     ```
 
-  - Add a `.sqlfluffingnore` config file to the project root, see, `jaffle_shop-dev`:
+  - Add a `.sqlfluffingnore` config file to the project root:
 
-    ```bash
-    dbt_packages/
-    target/
+    ```ignore
+    **/dbt_packages/
+    **/target/
+    <python_env>/
     ```
 
-  - From the dbt project root, either invole `sqlfluff lint` to list the code quality issues in the
-  current version of the SQL code or run `sqlfluff fix` to auto-correct the issues on the fly.
-  Note, that some issues need to be fixed manually.
+  - From the git project root, either invoke `sqlfluff lint` to list the code quality issues in the
+  current SQL code or run `sqlfluff fix` to auto-correct the issues on the fly.
+  Note, that some quality issues will still have to be fixed manually but the linter will usually
+  point to the right direction.
+
+- [Pre-commit](https://pre-commit.com/) hooks to check for fundamental issues with the code base
+  before adding them to git,
+
+  - Invoked manually via, `pre-commit run --all-files`.
 
 ## References
 
