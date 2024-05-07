@@ -9,6 +9,12 @@
 An enhanced working environment to develop and deploy dbt models using code quality tooling
 for its various moving parts.
 
+The description from the [project website](https://docs.getdbt.com/docs/introduction) sums it up perfectly:
+
+> dbt is a transformation workflow that helps you get more work done while producing higher quality results. You can use dbt to modularize and centralize your analytics code, while also providing your data team with guardrails typically found in software engineering workflows. Collaborate on data models, version them, and test and document your queries before safely deploying them to production, with monitoring and visibility.
+>
+> dbt compiles and runs your analytics code against your data platform, enabling you and your team to collaborate on a single source of truth for metrics, insights, and business definitions. This single source of truth, combined with the ability to define tests for your data, reduces errors when logic changes, and alerts you when issues arise.
+
 ## Prerequisites
 
 - This project was created on Ubuntu flavor linux,
@@ -56,6 +62,8 @@ and unit tests.
 functionality beyond the scope of `dbt-core`, e.g. timestamp functions of the `dbt_date` package.
 
 ## A more elaborate example (jaffle_shop-dev)
+
+This project has been taken from dbt's [Github](https://github.com/clrcrl/jaffle_shop) page and slightly extended:
 
 1. Switch directory to the dbt model and confirm that the connection is working:
 `cd jaffle_shop-dev && dbt debug`
@@ -190,13 +198,17 @@ within a dev team:
   Note, that some quality issues will still have to be fixed manually but the linter will usually
   point to the right direction.
 
+- [Prettier](https://prettier.io/) formatting of all `*.yaml` configuration files. Prettier's own configuration
+is specified within the `.prettierrc` file.
+
+  - A dry-run invoked manually via, `npx prettier . --check` and executed using `npx prettier . --write`.
+
 - [Pre-commit](https://pre-commit.com/) hooks to check for fundamental issues with the code base
   before adding them to git,
 
   - Invoked manually via, `pre-commit run --all-files`.
 
-## References
+## Further references
 
 - [SQL commands](https://docs.getdbt.com/sql-reference) in dbt
 - [time-related macros for dbt](https://hub.getdbt.com/calogica/dbt_date/latest/)
-- [dbt jaffle-shop example](https://github.com/dbt-labs/jaffle-shop)
