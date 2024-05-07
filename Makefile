@@ -8,7 +8,7 @@ all: help
 SHELL:=bash
 REQUIREMENTS = requirements-dbt.txt
 
-VENV_NAME ?= mytestenv
+VENV_NAME ?= dbt_env
 
 PYTHON = $(VENV_NAME)/bin/python
 FLAKE8 = $(VENV_NAME)/bin/flake8
@@ -19,7 +19,7 @@ PRECOMMIT = $(VENV_NAME)/bin/pre-commit
 help: ## display this help
 	@echo "Some dbt Showcase"
 	@echo "======================="
-	@awk 'BEGIN {FS = ":.*##"; printf "\033[36m\033[0m"} /^[a-zA-Z0-9_%/-\$$\.\(\)]+:.*?##/ { printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*##"; printf "\033[36m\033[0m"} /^[a-zA-Z0-9\(\)\$$_%\.-\\]+:.*?##/ { printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 	@printf "\n"
 
 ##@ Preparation
@@ -41,9 +41,7 @@ $(PRECOMMIT): $(REQUIREMENTS) ## install pre-commit in local dev environment
 	python3 -m venv $(VENV_NAME)
 	$(VENV_NAME)/bin/pip install -r $<
 
-##@ CI Functions
-ci: pre-commit-full test ## run whole CI part
-
+##@ Operations
 black: ## format your code using black
 	$(BLACK) --version
 	$(BLACK) --check .
@@ -59,3 +57,4 @@ pre-commit-full: ## run flake8 linter
 ##@ Tear-down
 clean: ## clean up temp files
 	rm -rf node_modules
+	rm -rf dbt_env
