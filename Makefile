@@ -14,6 +14,7 @@ PYTHON = $(VENV_NAME)/bin/python
 FLAKE8 = $(VENV_NAME)/bin/flake8
 BLACK = $(VENV_NAME)/bin/black
 PRECOMMIT = $(VENV_NAME)/bin/pre-commit
+PRETTIER = npx prettier
 
 ##@ Helpers
 help: ## display this help
@@ -24,6 +25,8 @@ help: ## display this help
 
 ##@ Preparation
 setup_env: $(PYTHON) $(FLAKE8) $(BLACK) ## install local dev environment
+
+
 
 $(PYTHON): $(REQUIREMENTS) ## install local python environment
 	python3 -m venv $(VENV_NAME)
@@ -37,20 +40,38 @@ $(BLACK): $(REQUIREMENTS) ## install reformatter in local dev environment
 	python3 -m venv $(VENV_NAME)
 	$(VENV_NAME)/bin/pip install -r $<
 
+$(PRETTIER): ## install prettier yaml reformatter using node package manager
+	npm install --save-dev --save-exact prettier
+
 $(PRECOMMIT): $(REQUIREMENTS) ## install pre-commit in local dev environment
 	python3 -m venv $(VENV_NAME)
 	$(VENV_NAME)/bin/pip install -r $<
 
+.PHONY: clean
+
 ##@ Operations
-black: ## format your code using black
+black_dry: ## format your python code using black - dry run
 	$(BLACK) --version
 	$(BLACK) --check .
 
-lint: ## run flake8 linter
+black_reformat: ## format your python code using black - applied (see, pyproject.toml)
+	$(BLACK) --version
+	$(BLACK) .
+
+flake8_lint: ## run flake8 linter - (see, setup.cfg)
 	$(FLAKE8) --version
 	$(FLAKE8)
 
-pre-commit-full: ## run flake8 linter
+prettier_dry: ## format your yaml using prettier - dry run
+	$(PRETTIER) --version
+	$(PRETTIER) . --check
+
+prettier_reformat: ## format your yaml using prettier - applied (see, .prettierrc)
+	$(PRETTIER) --version
+	$(PRETTIER) . --write
+
+
+pre-commit-full: ## run pre commit checks (see, .pre-commit-config.yaml)
 	$(PRECOMMIT) --version
 	$(PRECOMMIT) run --all-files
 
