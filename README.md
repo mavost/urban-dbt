@@ -24,8 +24,9 @@ instance on his laptop.
 - Run `make help` to get an overview of various helper functions.
 - Run `make setup-env` to install a python environment into the git project which will
 include the relevant dependencies.
+- Run `make dbt_debug` to check the configuration of the default showcase dbt project.
 
-## Simple Example
+## Simple Example (pg_source)
 
 1. Either use a pre-existing database connection or set up a docker container, e.g.,
 with a postgreSQL instance, admin role credentials and connection string should used
@@ -39,16 +40,53 @@ to connect to any DB admin tool of choice, e.g., [DBeaver](https://dbeaver.io/).
 
     - Run `dbt init`and fill out the required info on DB connectivity, specify *<project_name>* and **target** schema which dbt will work on, pulling data from the **source**. A project environment will created in the directory and a `~/.dbt/profile.yml` will store the connectivity information. Both will be linked via a `dbt_project.yml` file in the project root.
 
-3. Run `cd <project_name> && dbt debug` to verify that the connection to the postgres instance is working.
+3. Run `cd pg_source && dbt debug` to verify that the connection to the postgres instance is working.
 
-4. Observe the nested configuration between `*.yml` files where more general options can
-be overwritten by more nested options within the model layers.
+4. Observe the fine-grained configuration options within each `*.yml` file which can overwrite more nested options
+within the more genral model layers definitions.
 
 5. Run  `dbt run --select "models/example/my_first_dbt_model.sql"` for a "hello world" experience.
 
-## A more elaborate example
+6. After a run has concluded it would be appropriate to use a testing workflow to verify the integrity
+of the layers and tables generated, e.g., `dbt test --select "models/example/my_first_dbt_model.sql"` invoking
+generic tests on certain fields of a table. The testing criteria are specified in the `schema.yml` of the respective data model component. There are options for singular test cases, generic test cases,
+and unit tests.
 
-1. Switch directory to the `jaffle_shop-dev` model
+7. Run `dbt deps` to install additional modules, specified in `packages.yml` which provide advanced
+functionality beyond the scope of `dbt-core`, e.g. timestamp functions of the `dbt_date` package.
+
+## A more elaborate example (jaffle_shop-dev)
+
+1. Switch directory to the dbt model and confirm that the connection is working:
+`cd jaffle_shop-dev && dbt debug`
+
+2. Note that for most commands a target woudatabase has to be specified, e.g., `dbt run --target dev`.
+In the `~/.dbt/profiles.yml` we can define connections `[local, dev, prod]` and default targets that would
+usually point to `dev` or `local` instances.  
+We would deploy to production after rigorous testing, only.
+
+3. To source a simple start schema data mart we upload, or *seed*, a set of `*.csv` data files
+found in the `./seeds` folder to the database using `dbt seed`. This simulates the landing stage
+of the data lake/warehouse.
+
+4. We build the full data model by calling `dbt run` which will try to create all subsequent tables and views
+based on the specification found in `./models` consisting of `*.sql`, `*.yaml` definitions and jinja templating
+configuration. We can use a command like `dbt run --select staging` to construct only parts of the model up to a certain level or to re-create a particular table.
+
+5. We can do a dry-run of the `dbt run`, e.g., by calling `dbt show --select "model_name.sql"` which
+will run the query against the database but not write to the database. We can also run ad-hoc queries
+against the DB `dbt show --inline "select * from {{ ref('raw_customers') }}"`.
+
+6. A powerful feature of dbt is the automatic generation of structured documentation for each *model
+realization* based on the technology used. In this way the documentation for the production database
+will differ from the development instance, e.g., postgreSQL (dev) and snowflake (prod).
+Use `dbt docs generate --target dev` to generate/update the files.
+You can even run `dbt docs serve --target dev` to create a local [website](http://localhost:8080/#!/overview)
+to be displayed in the web browser. Noteworthy files are:
+
+    - `manifest.json`: Containing a full representation of your dbt project's resources (models, tests, macros, etc).
+
+    - `catalog.json`: Serves information about the tables and views produced and defined by the resources in your project.
 
 ## Helpers
 
@@ -94,7 +132,7 @@ within a dev team:
     pip install sqlfluff sqlfluff-templater-dbt
     ```
 
-  - Add a `.sqlfluff` config file to the project root:
+  - Add a `.sqlfluff` config file to the project root. Note: the SQL dialect and the project dir need to match the technologies used in the backend. ToDo: use jinja templating to add flexibility:
 
     ```yaml
     [sqlfluff]

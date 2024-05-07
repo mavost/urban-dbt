@@ -12,7 +12,8 @@ SHELL:=bash
 REQUIREMENTS = requirements-dbt.txt
 
 VENV_NAME ?= dbt_env
-DBT_PROJECT_NAME ?= jaffle_shop-dev
+DBT_PROJECT_NAME ?= pg_source
+# DBT_PROJECT_NAME ?= jaffle_shop-dev
 
 PYTHON = $(VENV_NAME)/bin/python
 # absolute path as we are calling dbt from its project dir
