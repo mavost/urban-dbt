@@ -1,8 +1,10 @@
-.prettierrc
+#.prettierrc
 *.html
 *.md
-*.json
-*.yml
-*.log
-*.sql
-target/**
+**/target/
+**/dbt_packages/
+
+**/package-lock.json
+**/package.json
+**/package-lock.yml
+**/packages.yml
