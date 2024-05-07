@@ -2,15 +2,21 @@ MAKEFLAGS += --warn-undefined-variables
 .SHELLFLAGS := -eu -o pipefail -c
 
 all: help
-.PHONY: all, help, setup_env, ci, black, lint, pre-commit-full, test, clean
+.PHONY: all, help, setup_env, black_dry, black_reformat, flake8_lint,\
+sqlfluff_dry, sqlfluff_lint, prettier_dry, prettier_reformat,\
+pre-commit-full, pre-commit-full, clean,\
+dbt_debug
 
 # Use bash for inline if-statements
 SHELL:=bash
 REQUIREMENTS = requirements-dbt.txt
 
 VENV_NAME ?= dbt_env
+DBT_PROJECT_NAME ?= jaffle_shop-dev
 
 PYTHON = $(VENV_NAME)/bin/python
+# absolute path as we are calling dbt from its project dir
+DBT = cd $(DBT_PROJECT_NAME) && $(shell pwd)/$(VENV_NAME)/bin/dbt
 FLAKE8 = $(VENV_NAME)/bin/flake8
 BLACK = $(VENV_NAME)/bin/black
 SQLFLUFF = $(VENV_NAME)/bin/sqlfluff
@@ -25,10 +31,13 @@ help: ## display this help
 	@printf "\n"
 
 ##@ Preparation
-setup_env: $(PYTHON) $(FLAKE8) $(BLACK) $(SQLFLUFF) $(PRECOMMIT) ## install local dev environment
-
+setup_env: $(PYTHON) $(DBT) $(FLAKE8) $(BLACK) $(SQLFLUFF) $(PRECOMMIT) $(PRETTIER) ## install local dbt environment
 
 $(PYTHON): $(REQUIREMENTS) ## install local python environment
+	python3 -m venv $(VENV_NAME)
+	$(VENV_NAME)/bin/pip install -r $<
+
+$(DBT): $(REQUIREMENTS) ## install dbt executable in dev environment
 	python3 -m venv $(VENV_NAME)
 	$(VENV_NAME)/bin/pip install -r $<
 
@@ -51,9 +60,12 @@ $(PRECOMMIT): $(REQUIREMENTS) ## install pre-commit in local dev environment
 $(PRETTIER): ## install prettier yaml reformatter using node package manager
 	npm install --save-dev --save-exact prettier
 
-.PHONY: clean setup_env
-
 ##@ Operations
+
+dbt_debug: ## check dbt version and project settings
+	$(DBT) --version
+	$(DBT) debug 
+
 black_dry: ## format your python code using black - dry run
 	$(BLACK) --version
 # black throws exit code=1 for detected formatting issues
