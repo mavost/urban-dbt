@@ -29,7 +29,7 @@ models:
       - name: number_of_orders
         description: Count of the number of orders a customer has placed
 
-      - name: total_order_amount
+      - name: customer_lifetime_value
         description: Total value (AUD) of a customer's orders
 
   - name: fct_orders
@@ -94,6 +94,7 @@ models:
         tests:
           - unique
           - not_null
+
       - name: first_name
         description: Customer's first name. PII.
 
@@ -112,17 +113,17 @@ models:
       - name: number_of_orders
         description: Count of the number of orders a customer has placed
 
-      - name: total_order_amount
+      - name: customer_lifetime_value
         description: Total value (AUD) of a customer's orders
 
       - name: order_date
         description: Date (UTC) that the order was placed
 
       - name: order_id
+        description: This is a unique identifier for an order
         tests:
           - unique
           - not_null
-        description: This is a unique identifier for an order
 
       - name: amount
         description: Total amount (AUD) of the order
