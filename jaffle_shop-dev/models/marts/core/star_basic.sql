@@ -15,7 +15,11 @@ fct_orders as (
 final as (
 
     select
-        dim_customers.*,
+        dim_customers.customer_id,
+        dim_customers.first_order,
+        dim_customers.most_recent_order,
+        dim_customers.number_of_orders,
+        dim_customers.customer_lifetime_value,
         fct_orders.amount,
         fct_orders.order_date,
         fct_orders.order_id
