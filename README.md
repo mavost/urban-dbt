@@ -121,11 +121,11 @@ Convenience features included were:
 
 - A [Makefile](https://www.gnu.org/software/make/manual/) to set up the environments and call the features below.
 
-- Automatic code reformatting following PEP8 using [black](https://black.readthedocs.io/en/stable/index.html),
+- Automatic Python code reformatting following PEP8 using [black](https://black.readthedocs.io/en/stable/index.html),
 
-  - Invoked manually via,`black .`
+  - Invoked and applied manually via, `black .` and as a dry run using `black --check .`
 
-- Linting using [flake8](https://github.com/PyCQA/flake8),
+- Python code linting using [flake8](https://github.com/PyCQA/flake8),
 
   - Flake8 linter integrated in aforementioned git hooks (and configured in *setup.cfg*)
 
