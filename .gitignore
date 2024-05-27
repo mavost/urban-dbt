@@ -21,3 +21,6 @@ node_modules/
 
 # python
 dbt_env
+
+# other
+meta_data.md
