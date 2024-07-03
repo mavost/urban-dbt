@@ -2,34 +2,34 @@
     'credit_card', 'coupon', 'bank_transfer', 'gift_card'
 ] %}
 
-with payments as (
+WITH payments AS (
 
-    select * from {{ ref('stg_payments') }}
+    SELECT * FROM {{ ref('stg_payments') }}
 
 ),
 
-final as (
+final AS (
 
-    select
+    SELECT
         order_id,
 
         {% for payment_method in payment_methods -%}
             sum(
-                case
-                    when
+                CASE
+                    WHEN
                         payment_method = '{{ payment_method }}'
-                        then amount else
+                        THEN amount ELSE
                         0
-                end
-            ) as {{ payment_method }}_amount,
+                END
+            ) AS {{ payment_method }}_amount,
         {% endfor -%}
 
-        sum(amount) as total_amount
+        sum(amount) AS total_amount
 
-    from payments
+    FROM payments
 
-    group by order_id
+    GROUP BY order_id
 
 )
 
-select * from final
+SELECT * FROM final
