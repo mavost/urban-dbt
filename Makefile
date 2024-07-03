@@ -2,18 +2,20 @@ MAKEFLAGS += --warn-undefined-variables
 .SHELLFLAGS := -eu -o pipefail -c
 
 all: help
-.PHONY: all, help, setup_env, black_dry, black_reformat, flake8_lint,\
-sqlfluff_dry, sqlfluff_lint, prettier_dry, prettier_reformat,\
-pre-commit-full, pre-commit-full, clean,\
-dbt_debug
+
+.PHONY: all help setup_env black_dry black_reformat flake8_lint\
+ sqlfluff_dry sqlfluff_lint prettier_dry prettier_reformat\
+ pre-commit-full pre-commit-full clean\
+ dbt_debug
 
 # Use bash for inline if-statements
 SHELL:=bash
 REQUIREMENTS = requirements-dbt.txt
 
 VENV_NAME ?= dbt_env
-DBT_PROJECT_NAME ?= pg_source
-# DBT_PROJECT_NAME ?= jaffle_shop-dev
+# DBT_PROJECT_NAME ?= pg_source
+DBT_PROJECT_NAME ?= jaffle_shop-dev
+
 
 PYTHON = $(VENV_NAME)/bin/python
 # absolute path as we are calling dbt from its project dir
@@ -34,27 +36,7 @@ help: ## display this help
 ##@ Preparation
 setup_env: $(PYTHON) $(DBT) $(FLAKE8) $(BLACK) $(SQLFLUFF) $(PRECOMMIT) $(PRETTIER) ## install local dbt environment
 
-$(PYTHON): $(REQUIREMENTS) ## install local python environment
-	python3 -m venv $(VENV_NAME)
-	$(VENV_NAME)/bin/pip install -r $<
-
-$(DBT): $(REQUIREMENTS) ## install dbt executable in dev environment
-	python3 -m venv $(VENV_NAME)
-	$(VENV_NAME)/bin/pip install -r $<
-
-$(FLAKE8): $(REQUIREMENTS) ## install linter in local dev environment
-	python3 -m venv $(VENV_NAME)
-	$(VENV_NAME)/bin/pip install -r $<
-
-$(BLACK): $(REQUIREMENTS) ## install reformatter in local dev environment
-	python3 -m venv $(VENV_NAME)
-	$(VENV_NAME)/bin/pip install -r $<
-
-$(SQLFLUFF): $(REQUIREMENTS) ## install sql-fluff in local dev environment
-	python3 -m venv $(VENV_NAME)
-	$(VENV_NAME)/bin/pip install -r $<
-
-$(PRECOMMIT): $(REQUIREMENTS) ## install pre-commit in local dev environment
+$(PYTHON) $(DBT) $(FLAKE8) $(BLACK) $(SQLFLUFF) $(PRECOMMIT): $(REQUIREMENTS) ## install local python environment with linters, etc.
 	python3 -m venv $(VENV_NAME)
 	$(VENV_NAME)/bin/pip install -r $<
 
@@ -62,6 +44,9 @@ $(PRETTIER): ## install prettier yaml reformatter using node package manager
 	npm install --save-dev --save-exact prettier
 
 ##@ Operations
+
+generate_sqlfluff_config: ## Generate/update .sqlfluff from template
+	@sed 's/{{DBT_PROJECT_NAME}}/$(DBT_PROJECT_NAME)/' .sqlfluff.template > .sqlfluff
 
 dbt_debug: ## check dbt version and project settings
 	$(DBT) --version
@@ -80,11 +65,11 @@ flake8_lint: ## run flake8 linter - (see, setup.cfg)
 	$(FLAKE8) --version
 	$(FLAKE8)
 
-sqlfluff_dry: ## format your sql using sqlfluff - dry run
+sqlfluff_dry: generate_sqlfluff_config ## format your sql using sqlfluff - dry run
 	$(SQLFLUFF) --version
 	$(SQLFLUFF) lint
 
-sqlfluff_lint: ## format your sql using sqlfluff - applied (see, .sqlfluff)
+sqlfluff_lint: generate_sqlfluff_config ## format your sql using sqlfluff - applied (see, .sqlfluff)
 	$(SQLFLUFF) --version
 	$(SQLFLUFF) fix
 
