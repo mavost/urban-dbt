@@ -24,6 +24,10 @@ be overwritten by more nested options within the model layers.
 
 7. Run  `dbt run --select "models/example/my_first_dbt_model.sql"` for a "hello world" experience.
 
+## Tata data set
+
+Kindly provided by the [Kaggle community](https://www.kaggle.com/datasets/ishanshrivastava28/tata-online-retail-dataset).
+
 ## Helpers
 
 - Install the command completion for dbt as specified, [here](https://github.com/dbt-labs/dbt-completion.bash).
