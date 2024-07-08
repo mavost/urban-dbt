@@ -1,14 +1,14 @@
 version: 2
 sources:
-- name: ingest
-  database : tata_retail
-  schema: raw
-  loaded_at_field: loaded_at
+  - name: ingest
+    database: tata_retail
+    schema: raw
+    loaded_at_field: loaded_at
 
-  freshness:
-    warn_after:
-      count: 2
-      period: hour
+    freshness:
+      warn_after:
+        count: 2
+        period: hour
 
-  tables:
-    - name: ingest_retail_data
+    tables:
+      - name: ingest_retail_data
