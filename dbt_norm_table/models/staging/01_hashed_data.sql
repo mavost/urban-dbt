@@ -1,12 +1,9 @@
-{{ config(materialized='table') }}
-
 WITH source_data AS (
 
-    SELECT COUNT(*) AS rows
+    SELECT count(*) AS my_rows
     FROM {{ source('ingest', 'ingest_retail_data') }}
 
 )
 
-select *
-from source_data
-
+SELECT *
+FROM source_data

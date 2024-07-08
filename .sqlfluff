@@ -11,7 +11,7 @@ max_line_length = 88
 indent_unit = space
 
 [sqlfluff:templater:dbt]
-project_dir = jaffle_shop-dev
+project_dir = dbt_norm_table
 
 [sqlfluff:templater]
 unwrap_wrapped_queries = False
