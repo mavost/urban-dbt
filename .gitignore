@@ -15,3 +15,12 @@ __pycache__/
 
 # logs
 logs/
+
+# node
+node_modules/
+
+# python
+dbt_env
+
+# other
+meta_data.md

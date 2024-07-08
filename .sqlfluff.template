@@ -1,0 +1,51 @@
+# .sqlfluff.template serves as base for config updates in Makefile
+# https://medium.com/@alice_thomaz/automating-sql-code-formatting-with-sqlfluff-4723779f19c6
+# https://docs.sqlfluff.com/en/stable/configuration.html#dbt-templater
+[sqlfluff]
+dialect = postgres
+#exclude_rules = RF05, LT05
+templater = dbt
+#templater = jinja
+runaway_limit = 10
+max_line_length = 88
+indent_unit = space
+
+[sqlfluff:templater:dbt]
+project_dir = {{DBT_PROJECT_NAME}}
+
+[sqlfluff:templater]
+unwrap_wrapped_queries = False
+
+[sqlfluff:templater:jinja]
+apply_dbt_builtins = True
+
+[sqlfluff:indentation]
+tab_space_size = 4
+
+[sqlfluff:layout:type:comma]
+spacing_before = touch
+line_position = trailing
+
+[sqlfluff:rules:capitalisation.keywords] 
+capitalisation_policy = upper
+
+[sqlfluff:rules:aliasing.table]
+aliasing = explicit
+
+[sqlfluff:rules:aliasing.column]
+aliasing = explicit
+
+[sqlfluff:rules:aliasing.expression]
+allow_scalar = False
+
+[sqlfluff:rules:capitalisation.identifiers]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.literals]
+capitalisation_policy = upper
+
+[sqlfluff:rules:ambiguous.column_references]  # Number in group by
+group_by_and_order_by_style = explicit

@@ -1,35 +1,39 @@
-with customers as (
+WITH customers AS (
 
-    select * from {{ ref('stg_customers') }}
-
-),
-
-customer_orders as (
-
-    select * from {{ ref('customer_orders') }}
+    SELECT * FROM {{ ref('stg_customers') }}
 
 ),
 
-customer_payments as (
+customer_orders AS (
 
-    select * from {{ ref('customer_payments') }}
+    SELECT * FROM {{ ref('customer_orders') }}
 
 ),
 
-final as (
+customer_payments AS (
 
-    select
+    SELECT * FROM {{ ref('customer_payments') }}
+
+),
+
+final AS (
+
+    SELECT
         customers.customer_id,
         customer_orders.first_order,
         customer_orders.most_recent_order,
         customer_orders.number_of_orders,
-        customer_payments.total_amount as customer_lifetime_value
+        customer_payments.total_amount AS customer_lifetime_value
 
-    from customers
+    FROM customers
 
-    left join customer_orders using (customer_id)
-    left join customer_payments using (customer_id)
+    LEFT JOIN
+        customer_orders
+        ON customers.customer_id = customer_orders.customer_id
+    LEFT JOIN
+        customer_payments
+        ON customers.customer_id = customer_payments.customer_id
 
 )
 
-select * from final
+SELECT * FROM final

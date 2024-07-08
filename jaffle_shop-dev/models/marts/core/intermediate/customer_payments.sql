@@ -1,27 +1,27 @@
-with payments as (
+WITH payments AS (
 
-    select * from {{ ref('stg_payments') }}
-
-),
-
-orders as (
-
-    select * from {{ ref('stg_orders') }}
+    SELECT * FROM {{ ref('stg_payments') }}
 
 ),
 
-final as (
+orders AS (
 
-    select
+    SELECT * FROM {{ ref('stg_orders') }}
+
+),
+
+final AS (
+
+    SELECT
         orders.customer_id,
-        sum(amount) as total_amount
+        sum(payments.amount) AS total_amount
 
-    from payments
+    FROM payments
 
-    left join orders using (order_id)
+    LEFT JOIN orders ON payments.order_id = orders.order_id
 
-    group by 1
+    GROUP BY orders.customer_id
 
 )
 
-select * from final
+SELECT * FROM final

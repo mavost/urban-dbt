@@ -1,20 +1,22 @@
-{% set payment_methods = ['credit_card', 'coupon', 'bank_transfer', 'gift_card'] %}
+{% set payment_methods = [
+    'credit_card', 'coupon', 'bank_transfer', 'gift_card'
+] %}
 
-with orders as (
+WITH orders AS (
 
-    select * from {{ ref('stg_orders') }}
-
-),
-
-order_payments as (
-
-    select * from {{ ref('order_payments') }}
+    SELECT * FROM {{ ref('stg_orders') }}
 
 ),
 
-final as (
+order_payments AS (
 
-    select
+    SELECT * FROM {{ ref('order_payments') }}
+
+),
+
+final AS (
+
+    SELECT
         orders.order_id,
         orders.customer_id,
         orders.order_date,
@@ -22,16 +24,16 @@ final as (
 
         {% for payment_method in payment_methods -%}
 
-        order_payments.{{payment_method}}_amount,
+            order_payments.{{ payment_method }}_amount,
 
         {% endfor -%}
 
-        order_payments.total_amount::numeric(6,2) as amount
+        order_payments.total_amount::numeric(20, 2) AS amount
 
-    from orders
+    FROM orders
 
-    left join order_payments using (order_id)
+    LEFT JOIN order_payments ON orders.order_id = order_payments.order_id
 
 )
 
-select * from final
+SELECT * FROM final

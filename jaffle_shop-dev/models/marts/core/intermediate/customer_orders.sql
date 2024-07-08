@@ -1,21 +1,21 @@
-with orders as (
+WITH orders AS (
 
-    select * from {{ ref('stg_orders') }}
+    SELECT * FROM {{ ref('stg_orders') }}
 
 ),
 
-final as (
+final AS (
 
-    select
+    SELECT
         customer_id,
 
-        min(order_date) as first_order,
-        max(order_date) as most_recent_order,
-        count(order_id) as number_of_orders
-    from orders
+        min(order_date) AS first_order,
+        max(order_date) AS most_recent_order,
+        count(order_id) AS number_of_orders
+    FROM orders
 
-    group by 1
+    GROUP BY customer_id
 
 )
 
-select * from final
+SELECT * FROM final
