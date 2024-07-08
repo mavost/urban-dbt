@@ -14,7 +14,8 @@ REQUIREMENTS = requirements-dbt.txt
 
 VENV_NAME ?= dbt_env
 # DBT_PROJECT_NAME ?= pg_source
-DBT_PROJECT_NAME ?= jaffle_shop-dev
+# DBT_PROJECT_NAME ?= jaffle_shop-dev
+DBT_PROJECT_NAME ?= dbt_norm_table
 
 
 PYTHON = $(VENV_NAME)/bin/python
