@@ -1,7 +1,7 @@
 WITH source_data AS (
 
     SELECT count(*) AS my_rows
-    FROM {{ source('ingest', 'ingest_retail_data') }}
+    FROM {{ source('ingest', 'ingest_retail_days_0') }}
 
 )
 
