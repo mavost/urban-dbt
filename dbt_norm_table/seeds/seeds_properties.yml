@@ -1,15 +1,15 @@
 version: 2
 
 seeds:
-  - name: ref_customers
+  - name: 01_ref_customers
     description: "some customers"
     docs:
       show: true
-  - name: ref_stock
+  - name: 02_ref_stock
     description: "some warehouse items"
     docs:
       show: true
-  - name: ref_countries
+  - name: 03_ref_countries
     description: "some retail countries"
     docs:
       show: true
