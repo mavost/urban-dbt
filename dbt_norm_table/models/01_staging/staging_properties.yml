@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: 01_hashed_data
+  - name: 0101_hashed_data
     description: "duplicate detection"
     columns:
-      - name: id
+      - name: HashID

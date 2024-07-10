@@ -2,7 +2,7 @@ version: 2
 sources:
   - name: ingest
     database: tata_retail
-    schema: raw
+    schema: 00_raw
 
     tables:
       - name: ingest_retail_data

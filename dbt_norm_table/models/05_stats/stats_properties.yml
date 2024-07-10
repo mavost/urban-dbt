@@ -1,0 +1,7 @@
+version: 2
+
+models:
+  - name: 0501_null_key_data
+    description: "incompleted ingestion data"
+    columns:
+      - name: NullKeyID

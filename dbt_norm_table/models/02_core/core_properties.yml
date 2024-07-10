@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: 0201_order_history
+    description: "captures transactional changes"
+    columns:
+      - name: HashID
+  - name: 0205_date_spine_months
+    description: "reporting scaffold"
+    columns:
+      - name: SpineID
