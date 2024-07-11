@@ -1,0 +1,39 @@
+﻿CountryID;CountryName;Continent;Business Region
+1;Australia;Australia;APAC
+2;Austria;Europe;EMEA
+3;Bahrain;Asia;EMEA
+4;Belgium;Europe;EMEA
+5;Brazil;South America;LATAM
+6;Canada;North America;NA
+7;Channel Islands;Europe;EMEA
+8;Cyprus;Europe;EMEA
+9;Czech Republic;Europe;EMEA
+10;Denmark;Europe;EMEA
+11;EIRE;Europe;EMEA
+12;European Community;Europe;EMEA
+13;Finland;Europe;EMEA
+14;France;Europe;EMEA
+15;Germany;Europe;EMEA
+16;Greece;Europe;EMEA
+17;Hong Kong;Asia;APAC
+18;Iceland;Europe;EMEA
+19;Israel;Asia;EMEA
+20;Italy;Europe;EMEA
+21;Japan;Asia;APAC
+22;Lebanon;Asia;EMEA
+23;Lithuania;Europe;EMEA
+24;Malta;Europe;EMEA
+25;Netherlands;Europe;EMEA
+26;Norway;Europe;EMEA
+27;Poland;Europe;EMEA
+28;Portugal;Europe;EMEA
+29;RSA;Africa;EMEA
+30;Saudi Arabia;Asia;EMEA
+31;Singapore;Asia;APAC
+32;Spain;Europe;EMEA
+33;Sweden;Europe;EMEA
+34;Switzerland;Europe;EMEA
+35;United Arab Emirates;Asia;EMEA
+36;United Kingdom;Europe;EMEA
+37;USA;North America;NA
+38;Unspecified;N/A;N/A
