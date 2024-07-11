@@ -9,3 +9,9 @@ models:
     description: "reporting scaffold"
     columns:
       - name: SpineID
+  - name: 0211_customers_historical
+    description: "historical customer data"
+  - name: 0212_stock_historical
+    description: "historical stock item data"
+  - name: 0213_countries_historical
+    description: "historical shipping country data"
