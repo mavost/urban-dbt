@@ -2,7 +2,7 @@
 
 WITH source_data AS (
 
-    SELECT 
+    SELECT
         "InvoiceNo",
         "StockCode",
         "Description",
@@ -15,17 +15,17 @@ WITH source_data AS (
     FROM {{ source('ingest', 'ingest_retail_days_0') }}
 
     WHERE
-        "InvoiceNo" IS NULL OR
-        "StockCode" IS NULL OR
-        "InvoiceDate" IS NULL OR
-        "CustomerID" IS NULL
+        "InvoiceNo" IS NULL
+        OR "StockCode" IS NULL
+        OR "InvoiceDate" IS NULL
+        OR "CustomerID" IS NULL
 
 ),
 
 incremental_load AS (
 
     SELECT
-        {{dbt_date.now('UTC')}}::TIMESTAMPTZ AT TIME ZONE 'UTC' AS "NullLoadDate",
+        {{ dbt_date.now('UTC') }}::TIMESTAMPTZ AT TIME ZONE 'UTC' AS "NullLoadDate",
         "SourceTable"::VARCHAR(30) AS "NullSourceTable",
         "InvoiceNo"::VARCHAR(12) AS "NullInvoiceNo",
         "StockCode"::VARCHAR(12) AS "NullStockCode",
@@ -43,7 +43,7 @@ incremental_load AS (
             ELSE 'unknown'
         END::VARCHAR(22) AS "NullErrorType"
     FROM
-    source_data
+        source_data
     {# {% if is_incremental() %}
     WHERE
         "LoadDate" > (SELECT MAX("NullLoadDate") FROM {{ this }})
@@ -52,6 +52,8 @@ incremental_load AS (
 )
 
 SELECT
-    ROW_NUMBER() OVER (PARTITION BY "NullLoadDate" ORDER BY "NullInvoiceNo")::INTEGER AS "NullKeyID",
-    *
+    *,
+    row_number()
+        OVER (PARTITION BY "NullLoadDate" ORDER BY "NullInvoiceNo")
+    ::INTEGER AS "NullKeyID"
 FROM incremental_load

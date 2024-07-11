@@ -7,19 +7,23 @@ WITH source_data AS (
     )
     }}
 
-), calc_data AS (
+),
+
+calc_data AS (
 
     SELECT
-        row_number() OVER (ORDER BY date_month)::INTEGER  AS "SpineID",
-        date_month::DATE AS "SpineValidFrom",
-        (date_month + INTERVAL '1 MONTH' - INTERVAL '1 DAY')::DATE AS "SpineValidTo"
+        cast(row_number() OVER (ORDER BY date_month) AS INTEGER) AS "SpineID",
+        cast(date_month AS DATE) AS "SpineValidFrom",
+        cast((
+            date_month + INTERVAL '1 MONTH' - INTERVAL '1 DAY'
+        ) AS DATE) AS "SpineValidTo"
     FROM source_data
 
-)    
+)
 
 SELECT
     "SpineID",
     "SpineValidFrom",
     "SpineValidTo",
-    "SpineValidTo"-"SpineValidFrom"+1 AS "SpineReportingDays"
-FROM  calc_data
+    "SpineValidTo" - "SpineValidFrom" + 1 AS "SpineReportingDays"
+FROM calc_data
