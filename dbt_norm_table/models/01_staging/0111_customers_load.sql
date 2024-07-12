@@ -1,3 +1,5 @@
+{# using view for staging #}
+
 WITH source_data AS (
 
     SELECT
@@ -8,7 +10,7 @@ WITH source_data AS (
 
 ),
 
-add_group_change AS (
+add_group_discriminator AS (
 
     SELECT
         *,
@@ -17,49 +19,47 @@ add_group_change AS (
 
 ),
 
-add_row_labels AS (
-
+group_label AS (
+    
     SELECT
-        *,
-        row_number() OVER (PARTITION BY "CustomersID" ORDER BY "CustomersPurchaseTime")::INTEGER AS "RowNumberASC",
-        row_number() OVER (PARTITION BY "CustomersID" ORDER BY "CustomersPurchaseTime" DESC)::INTEGER AS "RowNumberDESC"
-    FROM add_group_change
+        "CustomersID",
+        "CustomersPurchaseTime",
+        row_number() OVER (ORDER BY "CustomersID", "CustomersPurchaseTime")::INTEGER AS "CustomersGroupID",
+        1::INTEGER AS "CustomersOnes"
+    FROM add_group_discriminator
     WHERE "PrevCountry" IS NULL OR "PrevCountry" <> "CustomersCountry"
 
 ),
 
-has_duplicates AS (
+add_grouping AS (
 
-    SELECT DISTINCT
-        "CustomersID"
-    FROM add_row_labels
-    WHERE "RowNumberASC" > 1
+    SELECT
+        m.*,
+        j."CustomersGroupID" AS "ControlCustomersGroupID",
+        j."CustomersOnes",
+        sum(j."CustomersOnes") OVER (PARTITION BY m."CustomersID" ORDER BY m."CustomersPurchaseTime")::INTEGER AS "CustomersGroupID"
+    FROM add_group_discriminator m
+    LEFT JOIN group_label j
+    ON m."CustomersID"=j."CustomersID" AND m."CustomersPurchaseTime"=j."CustomersPurchaseTime"
 
 ),
 
-get_neighbor_time AS (
+add_grouping_index AS (
 
     SELECT
         *,
-        row_number() OVER (ORDER BY "CustomersID", "RowNumberASC")::INTEGER AS "CustomersGroupID",
-        lead("CustomersPurchaseTime") OVER (PARTITION BY "CustomersID" ORDER BY "RowNumberASC") AS "NextPurchaseTime"
-    FROM add_row_labels
-    --WHERE "CustomersID" IN (SELECT "CustomersID" FROM has_duplicates)
+        row_number() OVER (PARTITION BY "CustomersID", "CustomersGroupID" ORDER BY "CustomersPurchaseTime")::INTEGER AS "CustomersGroupIndex"
+    FROM add_grouping
 
 )
 
 SELECT
-    "CustomersGroupID",
     "CustomersID",
     "CustomersCountry",
     "CustomersPurchaseTime",
-    CASE
-        WHEN "RowNumberASC"=1 THEN '{{ dbt_date.date(2000, 1, 1) }}'
-        ELSE "CustomersPurchaseTime"
-    END::DATE AS "CustomersValidFrom",
-    CASE
-        WHEN "RowNumberDESC"=1 THEN '{{ dbt_date.date(9999, 12, 31) }}'
-        ELSE "NextPurchaseTime"
-    END::DATE AS "CustomersValidTo"
-FROM get_neighbor_time
-ORDER BY "CustomersID", "CustomersGroupID"
+    "CustomersGroupID",
+    "CustomersGroupIndex"
+    --,"CustomersOnes"
+    --,"ControlCustomersGroupID"
+FROM add_grouping_index
+ORDER BY "CustomersID", "CustomersGroupID", "CustomersGroupIndex"

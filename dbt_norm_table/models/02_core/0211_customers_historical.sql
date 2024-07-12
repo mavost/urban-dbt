@@ -1,13 +1,87 @@
-WITH source_data AS (
+{{
+    config(
+        materialized='incremental',
+        unique_key=['"CustomersID"', '"CustomersValidFrom"']
+    )
+}}
+
+WITH 
+get_ids AS (
+
+    SELECT DISTINCT 
+        "CustomersID"
+    FROM {{ref('0111_customers_load')}}
+
+    {% if is_incremental() %}
+    WHERE "CustomersPurchaseTime" > (SELECT max("CustomersPurchaseTime") - INTERVAL '{{var("overlap_interval")}}' FROM {{ this }})
+    --WHERE "CustomersPurchaseTime" > (SELECT max("CustomersPurchaseTime") FROM {{ this }})
+    {% else %}
+    WHERE "CustomersPurchaseTime" > '2011-09-12 14:40:00.000 +0000'
+    {% endif %}
+
+),
+
+source_data AS (
 
     SELECT
         *,
-        '{{ dbt_date.date(2000, 1, 1) }}'::DATE AS "HistoryValidFrom",
-        '{{ dbt_date.date(9999, 12, 31) }}'::DATE AS "HistoryValidTo"
+        row_number() OVER (PARTITION BY "CustomersID", "CustomersGroupID" ORDER BY "CustomersPurchaseTime")::INTEGER AS "RowFilter"
+    FROM {{ref('0111_customers_load')}}
+    WHERE "CustomersID" IN (SELECT "CustomersID" FROM get_ids)
+),
 
-    FROM {{ ref('01_ref_customers') }}
+add_row_labels AS (
+
+    SELECT
+        *,
+        row_number() OVER (PARTITION BY "CustomersID" ORDER BY "CustomersPurchaseTime")::INTEGER AS "RowNumberASC",
+        row_number() OVER (PARTITION BY "CustomersID" ORDER BY "CustomersPurchaseTime" DESC)::INTEGER AS "RowNumberDESC"
+    FROM source_data
+    WHERE "RowFilter"=1
+
+),
+
+only_multiples AS (
+
+    SELECT DISTINCT
+        "CustomersID"
+    FROM add_row_labels
+    WHERE "RowNumberASC" > 1
+
+),
+
+get_neighbor_timestamp AS (
+
+    SELECT
+        *,
+        lead("CustomersPurchaseTime") OVER (PARTITION BY "CustomersID" ORDER BY "RowNumberASC") AS "NextPurchaseTime"
+    FROM add_row_labels
+    --WHERE "CustomersID" IN (SELECT "CustomersID" FROM only_multiples)
+
+),
+
+set_validity AS (
+
+    SELECT 
+        *,
+        CASE
+            WHEN "RowNumberASC"=1 THEN '{{ var("start_date") }}'::DATE
+            ELSE "CustomersPurchaseTime"
+        END::DATE AS "CustomersValidFrom",
+        CASE
+            WHEN "RowNumberDESC"=1 THEN '{{ var("stop_date") }}'::DATE
+            ELSE "NextPurchaseTime"
+        END::DATE AS "CustomersValidTo"
+        FROM get_neighbor_timestamp
 
 )
 
-SELECT *
-FROM source_data
+SELECT
+    "CustomersID",
+    "CustomersGroupID",
+    "CustomersCountry",
+    "CustomersPurchaseTime",
+    "CustomersValidFrom",
+    "CustomersValidTo"
+FROM set_validity
+ORDER BY "CustomersID", "CustomersGroupID"
