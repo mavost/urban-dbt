@@ -38,3 +38,8 @@ seeds:
     +delimiter: ";"
     +column_types:
       Loading: boolean
+
+vars:
+  start_date: '2000-01-01'
+  stop_date: '9999-12-31'
+  overlap_interval: '0 MONTHS'
