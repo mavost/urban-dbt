@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: 0201_order_history
+  - name: 0201_orders_historical
     description: "captures transactional changes"
     columns:
       - name: HashID
@@ -11,6 +11,9 @@ models:
       - name: SpineID
   - name: 0211_customers_historical
     description: "historical customer data"
+    columns:
+      - name: CustomersID
+      - name: CustomersValidFrom
   - name: 0212_stock_historical
     description: "historical stock item data"
   - name: 0213_countries_historical
