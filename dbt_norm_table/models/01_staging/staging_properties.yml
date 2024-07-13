@@ -2,6 +2,32 @@ version: 2
 
 models:
   - name: 0101_hashed_data
-    description: "duplicate detection"
+    description: "Table loading with de-duplication"
     columns:
-      - name: HashID
+      - name: '"HashID"'
+        description: "The primary key for this table"
+        tests:
+          - not_null
+  - name: 0111_customers_load
+    description: "Table loading"
+    columns:
+      - name: '"CustomersID"'
+        description: "The primary key for this table"
+        tests:
+          - not_null
+  - name: 0112_stock_load
+    description: "Table loading"
+    columns:
+      - name: '"StockCode"'
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null
+  - name: 0113_countries_load
+    description: "Table loading"
+    columns:
+      - name: '"CountriesName"'
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null
