@@ -1,12 +1,25 @@
+{{
+    config(
+        materialized='incremental',
+        unique_key=['"CountriesName"']
+    )
+}}
+
 WITH source_data AS (
 
     SELECT
-        *,
-        '{{ dbt_date.date(2000, 1, 1) }}'::DATE AS "HistoryValidFrom",
-        '{{ dbt_date.date(9999, 12, 31) }}'::DATE AS "HistoryValidTo"
-
-    FROM {{ ref('03_ref_countries') }}
-
+        "CountriesID",
+        "CountriesName",
+        "CountriesContinent",
+        "CountriesBusinessRegion",
+        '{{ var("start_date") }}'::DATE AS "CountriesValidFrom",
+        '{{ var("stop_date") }}'::DATE AS "CountriesValidTo"
+    FROM {{ ref('0113_countries_load') }}
+    {% if is_incremental() %}
+      WHERE "CountriesName" NOT IN (SELECT DISTINCT "CountriesName" FROM {{ this }})
+    {% else %}
+      WHERE TRUE
+    {% endif %}
 )
 
 SELECT *
