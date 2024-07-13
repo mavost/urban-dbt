@@ -1,7 +1,7 @@
 {{
     config(
         materialized='incremental',
-        unique_key=['"CustomersID"', '"CustomersValidFrom"']
+        unique_key=['"CustomersID"', '"CustomersGroupID"']
     )
 }}
 
@@ -65,11 +65,11 @@ set_validity AS (
     SELECT 
         *,
         CASE
-            WHEN "RowNumberASC"=1 THEN '{{ var("start_date") }}'::DATE
+            WHEN "RowNumberASC"=1 THEN '{{ var("start_date") }}'
             ELSE "CustomersPurchaseTime"
         END::DATE AS "CustomersValidFrom",
         CASE
-            WHEN "RowNumberDESC"=1 THEN '{{ var("stop_date") }}'::DATE
+            WHEN "RowNumberDESC"=1 THEN '{{ var("stop_date") }}'
             ELSE "NextPurchaseTime"
         END::DATE AS "CustomersValidTo"
         FROM get_neighbor_timestamp
