@@ -15,13 +15,13 @@ all: help
 # Use bash for inline if-statements
 SHELL:=bash
 
-VENV_NAME ?= ../_dbt_env
+VENV_NAME ?= _dbt_env
 DBT_PROJECT_NAME ?= dbt_norm_table
 DBT_TARGET ?= test
 DBT_PORT ?= 8082
 
 PYTHON = $(VENV_NAME)/bin/python
-DBT = $(VENV_NAME)/bin/dbt
+DBT = ../$(VENV_NAME)/bin/dbt
 FLAKE8 = $(VENV_NAME)/bin/flake8
 BLACK = $(VENV_NAME)/bin/black
 SQLFLUFF = $(VENV_NAME)/bin/sqlfluff
@@ -70,37 +70,29 @@ generate_sqlfluff_config: ## Generate/update .sqlfluff from template
 	@sed 's/{{DBT_PROJECT_NAME}}/$(DBT_PROJECT_NAME)/' ../.sqlfluff.template > ../.sqlfluff
 
 black_dry: ## format your python code using black - dry run
-	$(BLACK) --version
 # black throws exit code=1 for detected formatting issues
-	$(BLACK) --check . || true
+	cd .. && $(BLACK) --check . || true && cd -
 
 black_reformat: ## format your python code using black - applied (see, pyproject.toml)
-	$(BLACK) --version
-	$(BLACK) .
+	cd .. && $(BLACK) . && cd -
 
 flake8_lint: ## run flake8 linter - (see, setup.cfg)
-	$(FLAKE8) --version
-	$(FLAKE8)
+	cd .. && $(FLAKE8) && cd -
 
 sqlfluff_dry: generate_sqlfluff_config ## format your sql using sqlfluff - dry run
-	$(SQLFLUFF) --version
-	$(SQLFLUFF) lint
+	cd .. && $(SQLFLUFF) lint && cd -
 
 sqlfluff_lint: generate_sqlfluff_config ## format your sql using sqlfluff - applied (see, .sqlfluff)
-	$(SQLFLUFF) --version
-	$(SQLFLUFF) fix
+	cd .. && $(SQLFLUFF) fix && cd -
 
 prettier_dry: ## format your yaml using prettier - dry run
-	$(PRETTIER) --version
-	$(PRETTIER) . --check
+	cd .. && $(PRETTIER) . --check && cd -
 
 prettier_reformat: ## format your yaml using prettier - applied (see, .prettierrc)
-	$(PRETTIER) --version
-	$(PRETTIER) . --write
+	cd .. && $(PRETTIER) . --write && cd -
 
 pre-commit-full: ## run pre commit checks (see, .pre-commit-config.yaml)
-	$(PRECOMMIT) --version
-	$(PRECOMMIT) run --all-files
+	cd .. && $(PRECOMMIT) run --all-files && cd -
 
 ##@ Tear-down
 clean: ## clean up temp files
