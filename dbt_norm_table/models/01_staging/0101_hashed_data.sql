@@ -26,11 +26,11 @@ cleaned_data AS (
     SELECT
         "SourceTable"::VARCHAR(30) AS "HashSourceTable",
         "InvoiceNo"::VARCHAR(12) AS "HashInvoiceNo",
-        "StockCode"::VARCHAR(12) AS "HashStockCode",
+        upper("StockCode")::VARCHAR(12) AS "HashStockCode",
         coalesce("Description", '')::VARCHAR(60) AS "HashDescription",
         coalesce("Quantity", 0)::INTEGER AS "HashQuantity",
         coalesce("UnitPrice", 0.0)::NUMERIC AS "HashUnitPrice",
-        "CustomerID"::VARCHAR(12) AS "HashCustomerID",
+        "CustomerID"::INTEGER AS "HashCustomerID",
         coalesce("Country", '')::VARCHAR(30) AS "HashCountry",
         timezone('UTC', "InvoiceDate"::TIMESTAMP) AS "HashInvoiceDate"
     FROM source_data
@@ -44,7 +44,8 @@ hashed_data AS (
         md5(
             "HashInvoiceNo" || "HashStockCode" || "HashDescription"
             || "HashQuantity"::VARCHAR(12) || "HashInvoiceDate"::VARCHAR(30)
-            || "HashUnitPrice"::VARCHAR(12) || "HashCustomerID" || "HashCountry"
+            || "HashUnitPrice"::VARCHAR(12) || "HashCustomerID"::VARCHAR(12)
+            || "HashCountry"
         )::UUID AS "HashID",
         timezone('UTC', {{ dbt_date.now('UTC') }}::TIMESTAMP) AS "HashLoadDate",
         *
