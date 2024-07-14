@@ -7,7 +7,8 @@ MAKEFLAGS += --warn-undefined-variables
 all: help
 
 .PHONY: all help clean \
- 	dbt_debug dbt_docs dbt_run_refresh dbt_run_incremental \
+ 	dbt_debug dbt_docs dbt_run_refresh dbt_incremental \
+	run_seed run_stage run_core run_stats runinc_stage runinc_core \
 	black_dry black_reformat flake8_lint \
  	sqlfluff_dry sqlfluff_lint prettier_dry prettier_reformat \
  	pre-commit-full pre-commit-full
@@ -46,19 +47,46 @@ dbt_docs: ## generate dbt model docs and start server
 	$(DBT) docs generate --target $(DBT_TARGET) &&\
 	$(DBT) docs serve --target $(DBT_TARGET) --port $(DBT_PORT)
 
-dbt_run_refresh: ## refresh dbt model and test: layer by layer
-	@echo "Running/testing dbt full model refresh - layer by layer"
-	$(DBT) seed --target $(DBT_TARGET) &&\
-	$(DBT) run --target $(DBT_TARGET) --select $(DBT_PROJECT_NAME).01_staging.* --full-refresh &&\
-	$(DBT) test --target $(DBT_TARGET) --select $(DBT_PROJECT_NAME).01_staging.* &&\
-	$(DBT) run --target $(DBT_TARGET) --select $(DBT_PROJECT_NAME).02_core.* --full-refresh &&\
-	$(DBT) test --target $(DBT_TARGET) --select $(DBT_PROJECT_NAME).02_core.* &&\
-	$(DBT) run --target $(DBT_TARGET) --select $(DBT_PROJECT_NAME).05_stats.* --full-refresh
+dbt_run_refresh: REFRESH=--full-refresh
+dbt_run_refresh: run_seed run_stage run_core run_stats ## refresh dbt model and test: layer by layer
 
-dbt_run_incremental: ## add data to dbt model - layer by layer (tbc)
-	@echo "Running dbt incrementally"
-	$(DBT) run --target $(DBT_TARGET) --select $(DBT_PROJECT_NAME).01_staging.* &&\
-	$(DBT) run --target $(DBT_TARGET) --select $(DBT_PROJECT_NAME).02_core.*  --vars 'overlap_interval: "1 MONTH"'
+run_seed:
+	@echo "Running dbt seed to raw layer"
+	$(DBT) seed --target $(DBT_TARGET)
+
+run_stage:
+	$(eval LAYER=01_staging)
+	$(RUNTEST_LAYER_TEMPLATE)
+
+run_core:
+	$(eval LAYER=02_core)
+	$(RUNTEST_LAYER_TEMPLATE)
+
+run_stats:
+	$(eval LAYER=05_stats)
+	$(RUN_LAYER_TEMPLATE)
+
+dbt_incremental: REFRESH=
+dbt_incremental: runinc_stage runinc_core ## add data to dbt model - layer by layer (tbc)
+
+runinc_stage:
+	$(eval LAYER=01_staging)
+	$(RUN_LAYER_TEMPLATE)
+
+runinc_core:
+	$(eval LAYER=02_core)
+	$(RUN_LAYER_TEMPLATE)
+
+define RUN_LAYER_TEMPLATE
+@echo "Running dbt $(LAYER) layer"
+$(DBT) run --target $(DBT_TARGET) --select $(DBT_PROJECT_NAME).$(LAYER).* $(REFRESH)
+endef
+
+define RUNTEST_LAYER_TEMPLATE
+@echo "Running/testing dbt $(LAYER) layer"
+$(DBT) run --target $(DBT_TARGET) --select $(DBT_PROJECT_NAME).$(LAYER).* $(REFRESH) &&\
+$(DBT) test --target $(DBT_TARGET) --select $(DBT_PROJECT_NAME).$(LAYER).*
+endef
 
 dbt_reset: ## clean dbt configuration
 	@echo "Cleaning dbt environment and installing dependencies"
