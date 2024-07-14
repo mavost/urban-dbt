@@ -20,6 +20,7 @@ VENV_NAME ?= _dbt_env
 DBT_PROJECT_NAME ?= dbt_norm_table
 DBT_TARGET ?= test
 DBT_PORT ?= 8082
+LAYER ?= null
 
 PYTHON = $(VENV_NAME)/bin/python
 DBT = ../$(VENV_NAME)/bin/dbt
