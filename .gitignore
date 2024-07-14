@@ -6,6 +6,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+_dbt_env/
 
 # Caches
 __pycache__/
@@ -20,7 +21,6 @@ logs/
 node_modules/
 
 # python
-dbt_env
 
 # other
 meta_data.md

@@ -12,7 +12,7 @@ all: help
 SHELL:=bash
 REQUIREMENTS = requirements-dbt.txt
 
-VENV_NAME ?= dbt_env
+VENV_NAME ?= _dbt_env
 # DBT_PROJECT_NAME ?= pg_source
 # DBT_PROJECT_NAME ?= jaffle_shop-dev
 DBT_PROJECT_NAME ?= dbt_norm_table
@@ -89,4 +89,4 @@ pre-commit-full: ## run pre commit checks (see, .pre-commit-config.yaml)
 ##@ Tear-down
 clean: ## clean up temp files
 	rm -rf node_modules
-	rm -rf dbt_env
+	rm -rf _dbt_env

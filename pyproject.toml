@@ -13,6 +13,6 @@ extend-exclude = '''
 # in the root of the project.
 (
   .git
-  | \dbt_env
+  | \_dbt_env
 )
 '''
