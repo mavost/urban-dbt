@@ -1,3 +1,5 @@
 **/dbt_packages/
 **/target/
+**/logs/
 _dbt_env/
+node_modules/

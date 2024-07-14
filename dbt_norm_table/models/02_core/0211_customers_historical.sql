@@ -20,7 +20,6 @@ get_ids AS (
                     - INTERVAL '{{ var("overlap_interval") }}'
                 FROM {{ this }}
             )
-    --WHERE "CustomersPurchaseTime" > (SELECT max("CustomersPurchaseTime") FROM {{ this }})
     {% else %}
     WHERE "CustomersPurchaseTime" > '2011-09-12 14:40:00.000 +0000'
     {% endif %}
@@ -56,6 +55,7 @@ add_row_labels AS (
 
 ),
 
+/*
 only_multiples AS (
 
     SELECT DISTINCT "CustomersID"
@@ -63,7 +63,7 @@ only_multiples AS (
     WHERE "RowNumberASC" > 1
 
 ),
-
+*/
 get_neighbor_timestamp AS (
 
     SELECT

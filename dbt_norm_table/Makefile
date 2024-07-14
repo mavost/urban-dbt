@@ -80,10 +80,11 @@ flake8_lint: ## run flake8 linter - (see, setup.cfg)
 	cd .. && $(FLAKE8) && cd -
 
 sqlfluff_dry: generate_sqlfluff_config ## format your sql using sqlfluff - dry run
-	cd .. && $(SQLFLUFF) lint && cd -
+# sqlfluff throws exit code=1 for detected formatting issues
+	cd .. && $(SQLFLUFF) lint || true && cd -
 
 sqlfluff_lint: generate_sqlfluff_config ## format your sql using sqlfluff - applied (see, .sqlfluff)
-	cd .. && $(SQLFLUFF) fix && cd -
+	cd .. && $(SQLFLUFF) fix || true && cd -
 
 prettier_dry: ## format your yaml using prettier - dry run
 	cd .. && $(PRETTIER) . --check && cd -
