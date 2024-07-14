@@ -21,7 +21,7 @@ get_ids AS (
                 FROM {{ this }}
             )
     {% else %}
-    WHERE "CustomersPurchaseTime" > '2011-09-12 14:40:00.000 +0000'
+    WHERE TRUE
     {% endif %}
 
 ),
@@ -90,14 +90,43 @@ set_validity AS (
         END::DATE AS "CustomersValidTo"
     FROM get_neighbor_timestamp
 
+),
+
+get_countries AS (
+
+    SELECT * 
+    FROM {{ ref('0213_countries_historical') }}
+    WHERE "CountriesValidFrom" <= CURRENT_DATE
+        AND CURRENT_DATE < "CountriesValidTo"
+
+),
+
+normalize_dims AS (
+
+    SELECT
+    "CustomersID",
+    "CustomersGroupID",
+    "CustomersCountry",
+    j."CountriesName",
+    j."CountriesID"::INTEGER AS "CustomersCountryID",
+    "CustomersPurchaseTime",
+    "CustomersValidFrom",
+    "CustomersValidTo"
+    FROM set_validity m
+    LEFT JOIN get_countries j
+    --INNER JOIN get_countries j
+    ON m."CustomersCountry" = j."CountriesName"
+
 )
 
 SELECT
     "CustomersID",
     "CustomersGroupID",
+    "CustomersCountryID",
     "CustomersCountry",
     "CustomersPurchaseTime",
     "CustomersValidFrom",
     "CustomersValidTo"
-FROM set_validity
+FROM normalize_dims
+--WHERE "CustomersCountryID" IS NULL
 ORDER BY "CustomersID", "CustomersGroupID"
