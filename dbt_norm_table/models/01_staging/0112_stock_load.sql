@@ -10,7 +10,6 @@ WITH source_data AS (
 
 )
 
-SELECT
-    *
+SELECT *
 FROM source_data
 ORDER BY "StockDescription", "StockCode"
