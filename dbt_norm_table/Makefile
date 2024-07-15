@@ -67,6 +67,9 @@ run_stats:
 	$(eval LAYER=05_stats)
 	$(RUN_LAYER_TEMPLATE)
 
+# Example: make dbt_incremental REFRESH="--vars 'overlap_interval: \"2 Days\"'"
+# 	will simulate an incremental load acrooss all models using this variable's time difference
+#   Note: in this chow case the time line of the seeds (full) and ingestion (continuously) differs!
 dbt_incremental: REFRESH=
 dbt_incremental: runinc_stage runinc_core ## add data to dbt model - layer by layer (tbc)
 
