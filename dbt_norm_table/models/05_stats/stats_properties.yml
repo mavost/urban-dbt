@@ -5,3 +5,6 @@ models:
     description: "incompleted ingestion data"
     columns:
       - name: NullKeyID
+  - name: 0502_hash_statistics
+    description: "duplicate ingestion data"
+
