@@ -26,8 +26,11 @@ models:
       materialized: view
       schema: 01_staging
     02_core:
-      materialized: view
+      materialized: incremental
       schema: 02_core
+    03_mart:
+      materialized: incremental
+      schema: 03_mart
     05_stats:
       materialized: view
       schema: 05_stats
