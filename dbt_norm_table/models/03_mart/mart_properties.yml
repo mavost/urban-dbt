@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: 0301_orders_facts
+    description: "fact table for orders"
+    columns:
+      - name: '"OrdersHashID"'
+
+  - name: 0302_cancellations_facts
+    description: "fact table for cancellations"
+    columns:
+      - name: '"CancellationsHashID"'
+
+  - name: 0305_date_spine_months
+    description: "reporting scaffolding"
+    columns:
+      - name: '"SpineID"'
+
+  - name: 0311_customers_dim
+    description: "customer dimension"
+    columns:
+      - name: '"CustomersID"'
+      - name: '"CustomersValidFrom"'
+
+  - name: 0312_stock_dim
+    description: "stock dimension"
+    columns:
+      - name: '"StockCode"'
+
+  - name: 0313_countries_dim
+    description: "shipping country dimension"
+    columns:
+      - name: '"CountriesName"'

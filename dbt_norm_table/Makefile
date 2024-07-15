@@ -49,7 +49,7 @@ dbt_docs: ## generate dbt model docs and start server
 	$(DBT) docs serve --target $(DBT_TARGET) --port $(DBT_PORT)
 
 dbt_run_refresh: REFRESH=--full-refresh
-dbt_run_refresh: run_seed run_stage run_core run_stats ## refresh dbt model and test: layer by layer
+dbt_run_refresh: run_seed run_stage run_core run_mart run_stats ## refresh dbt model and test: layer by layer
 
 run_seed:
 	@echo "Running dbt seed to raw layer"
@@ -63,6 +63,10 @@ run_core:
 	$(eval LAYER=02_core)
 	$(RUNTEST_LAYER_TEMPLATE)
 
+run_mart:
+	$(eval LAYER=03_mart)
+	$(RUNTEST_LAYER_TEMPLATE)
+
 run_stats:
 	$(eval LAYER=05_stats)
 	$(RUN_LAYER_TEMPLATE)
@@ -71,7 +75,7 @@ run_stats:
 # 	will simulate an incremental load acrooss all models using this variable's time difference
 #   Note: in this chow case the time line of the seeds (full) and ingestion (continuously) differs!
 dbt_incremental: REFRESH=
-dbt_incremental: runinc_stage runinc_core ## add data to dbt model - layer by layer (tbc)
+dbt_incremental: runinc_stage runinc_core runinc_mart ## add data to dbt model - layer by layer (tbc)
 
 runinc_stage:
 	$(eval LAYER=01_staging)
@@ -79,6 +83,10 @@ runinc_stage:
 
 runinc_core:
 	$(eval LAYER=02_core)
+	$(RUN_LAYER_TEMPLATE)
+
+runinc_mart:
+	$(eval LAYER=03_mart)
 	$(RUN_LAYER_TEMPLATE)
 
 define RUN_LAYER_TEMPLATE
