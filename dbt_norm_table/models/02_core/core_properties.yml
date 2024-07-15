@@ -2,19 +2,32 @@ version: 2
 
 models:
   - name: 0201_orders_historical
-    description: "captures transactional changes"
+    description: "captures transactional changes for orders"
     columns:
-      - name: HashID
+      - name: '"OrdersHashID"'
+
+  - name: 0202_cancellations_historical
+    description: "captures transactional changes for cancellations"
+    columns:
+      - name: '"CancellationsHashID"'
+
   - name: 0205_date_spine_months
     description: "reporting scaffold"
     columns:
-      - name: SpineID
+      - name: '"SpineID"'
+
   - name: 0211_customers_historical
     description: "historical customer data"
     columns:
-      - name: CustomersID
-      - name: CustomersValidFrom
+      - name: '"CustomersID"'
+      - name: '"CustomersValidFrom"'
+
   - name: 0212_stock_historical
     description: "historical stock item data"
+    columns:
+      - name: '"StockCode"'
+
   - name: 0213_countries_historical
     description: "historical shipping country data"
+    columns:
+      - name: '"CountriesName"'
