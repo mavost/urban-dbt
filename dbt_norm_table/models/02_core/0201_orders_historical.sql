@@ -1,6 +1,5 @@
 {{
     config(
-        materialized='incremental',
         unique_key=['"OrdersHashID"'],
         indexes=[{'columns': ['"OrdersHashID"'], 'type': 'hash'},]
     )
