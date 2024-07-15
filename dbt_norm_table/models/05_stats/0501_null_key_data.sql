@@ -1,5 +1,3 @@
-{# {{ config(materialized='incremental') }} #}
-
 WITH source_data AS (
 
     SELECT
@@ -42,12 +40,7 @@ incremental_load AS (
             WHEN "CustomerID" IS NULL THEN 'Missing CustomerID'
             ELSE 'unknown'
         END::VARCHAR(22) AS "NullErrorType"
-    FROM
-        source_data
-    {# {% if is_incremental() %}
-    WHERE
-        "LoadDate" > (SELECT MAX("NullLoadDate") FROM {{ this }})
-    {% endif %} #}
+    FROM source_data
 
 )
 
