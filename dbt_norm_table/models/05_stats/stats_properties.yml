@@ -9,8 +9,5 @@ models:
   - name: 0502_core_statistics
     description: "duplicate, orders, cancellation ingestion data"
 
-  - name: 0503_date_statistics
-    description: "date ranges"
-
   - name: 0504_mart_statistics
     description: "row counts per table per rep. month"
