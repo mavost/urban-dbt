@@ -8,6 +8,7 @@ models:
         description: "The primary key for this table"
         tests:
           - not_null
+
   - name: 0111_customers_load
     description: "Table loading"
     columns:
@@ -15,6 +16,7 @@ models:
         description: "The primary key for this table"
         tests:
           - not_null
+
   - name: 0112_stock_load
     description: "Table loading"
     columns:
@@ -23,6 +25,7 @@ models:
         tests:
           - unique
           - not_null
+
   - name: 0113_countries_load
     description: "Table loading"
     columns:
