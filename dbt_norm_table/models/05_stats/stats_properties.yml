@@ -5,6 +5,9 @@ models:
     description: "incompleted ingestion data"
     columns:
       - name: NullKeyID
-  - name: 0502_hash_statistics
-    description: "duplicate ingestion data"
 
+  - name: 0502_core_statistics
+    description: "duplicate, orders, cancellation ingestion data"
+
+  - name: 0503_date_statistics
+    description: "date ranges"
