@@ -8,11 +8,11 @@
 WITH 
 get_ids AS (
 
-    SELECT DISTINCT "HashID"
-    FROM {{ ref("0101_hashed_data") }}
-    WHERE "HashInvoiceNo" NOT LIKE 'C%'
+    SELECT DISTINCT "TransactHashID"
+    FROM {{ ref("0101_transactional_data") }}
+    WHERE "TransactInvoiceNo" NOT LIKE 'C%'
     {% if is_incremental() %}
-        AND "HashInvoiceDate"
+        AND "TransactInvoiceDate"
         > (
             SELECT
                 max("OrdersInvoiceDate")
@@ -28,9 +28,9 @@ get_ids AS (
 source_data AS (
 
     SELECT *
-    FROM {{ ref("0101_hashed_data") }}
-    WHERE "HashID" IN (SELECT "HashID" FROM get_ids)
-        AND "HashRowCount" = 1
+    FROM {{ ref("0101_transactional_data") }}
+    WHERE "TransactHashID" IN (SELECT "TransactHashID" FROM get_ids)
+        AND "TransactRowCount" = 1
 
 ),
 
@@ -38,8 +38,8 @@ set_validity AS (
 
     SELECT
         *,
-        "HashInvoiceDate"::DATE AS "HashValidFrom",
-        '{{ dbt_date.date(9999, 12, 31) }}'::DATE AS "HashValidTo"
+        "TransactInvoiceDate"::DATE AS "TransactValidFrom",
+        '{{ dbt_date.date(9999, 12, 31) }}'::DATE AS "TransactValidTo"
         FROM source_data
 
 ),
@@ -68,27 +68,28 @@ denormalize_dims AS (
         j2."StockID"
     FROM set_validity m
     LEFT JOIN get_customers j1
-    ON m."HashCustomerID" = j1."CustomersID"
-        AND j1."CustomersValidFrom" <= m."HashValidFrom"
-        AND m."HashValidFrom"::DATE < j1."CustomersValidTo"
+    ON m."TransactCustomerID" = j1."CustomersID"
+        AND j1."CustomersValidFrom" <= m."TransactValidFrom"
+        AND m."TransactValidFrom"::DATE < j1."CustomersValidTo"
     LEFT JOIN get_stock j2
-    ON m."HashStockCode" = j2."StockCode"
-        AND j2."StockValidFrom" <= m."HashValidFrom"
-        AND m."HashValidFrom" < j2."StockValidTo"
+    ON m."TransactStockCode" = j2."StockCode"
+        AND j2."StockValidFrom" <= m."TransactValidFrom"
+        AND m."TransactValidFrom" < j2."StockValidTo"
 
 )
 
 SELECT
-    "HashID" AS "OrdersHashID",
-    "HashLoadDate" AS "OrdersLoadDate",
-    "HashInvoiceNo" AS "OrdersInvoiceNo",
-    "HashInvoiceDate" AS "OrdersInvoiceDate",
-    "HashQuantity" AS "OrdersQuantity",
-    "HashUnitPrice" AS "OrdersUnitPrice",
+    "TransactHashID" AS "OrdersHashID",
+    "TransactLoadDate" AS "OrdersLoadDate",
+    "TransactInvoiceNo"::INTEGER AS "OrdersInvoiceNo",
+    "TransactInvoiceDate" AS "OrdersInvoiceDate",
+    "TransactQuantity" AS "OrdersQuantity",
+    "TransactUnitPrice" AS "OrdersUnitPrice",
+    ("TransactUnitPrice" * "TransactQuantity")::NUMERIC AS "OrdersSales",
     "StockID" AS "OrdersStockID",
     "CustomersID" AS "OrdersCustomersID",
-    "HashValidFrom" AS "OrdersValidFrom",
-    "HashValidTo" AS "OrdersValidTo"
+    "TransactValidFrom" AS "OrdersValidFrom",
+    "TransactValidTo" AS "OrdersValidTo"
 FROM denormalize_dims
 --WHERE "CustomersCountry" IS NULL
-ORDER BY "HashInvoiceNo", "HashValidFrom"
+ORDER BY "TransactInvoiceNo", "TransactValidFrom"

@@ -7,11 +7,11 @@
 
 WITH get_ids AS (
 
-    SELECT DISTINCT "HashID"
-    FROM {{ ref("0101_hashed_data") }}
-    WHERE "HashInvoiceNo" LIKE 'C%'
+    SELECT DISTINCT "TransactHashID"
+    FROM {{ ref("0101_transactional_data") }}
+    WHERE "TransactInvoiceNo" LIKE 'C%'
     {% if is_incremental() %}
-        AND "HashInvoiceDate"
+        AND "TransactInvoiceDate"
         > (
             SELECT
                 max("CancellationsInvoiceDate")
@@ -29,16 +29,16 @@ source_data AS (
     SELECT *,
         -- connect cancellations to historic purchases (sometimes, same invoice # is used)
         CASE
-            WHEN "HashInvoiceNo" LIKE 'C%' THEN replace("HashInvoiceNo", 'C', '')
-            ELSE "HashInvoiceNo"
+            WHEN "TransactInvoiceNo" LIKE 'C%' THEN replace("TransactInvoiceNo", 'C', '')
+            ELSE "TransactInvoiceNo"
         END::INTEGER AS "NewHashInvoiceNo"
         /*CASE
-            WHEN "HashInvoiceNo" LIKE 'C%' THEN "HashDescription"
+            WHEN "TransactInvoiceNo" LIKE 'C%' THEN "TransactDescription"
             ELSE ''
-        END::VARCHAR(60) AS "HashCancelDescription",*/
-    FROM {{ ref("0101_hashed_data") }}
-    WHERE "HashID" IN (SELECT "HashID" FROM get_ids)
-        AND "HashRowCount" = 1
+        END::VARCHAR(60) AS "TransactCancelDescription",*/
+    FROM {{ ref("0101_transactional_data") }}
+    WHERE "TransactHashID" IN (SELECT "TransactHashID" FROM get_ids)
+        AND "TransactRowCount" = 1
 
 ),
 
@@ -46,8 +46,8 @@ set_validity AS (
 
     SELECT
         *,
-        "HashInvoiceDate"::DATE AS "HashValidFrom",
-        '{{ dbt_date.date(9999, 12, 31) }}'::DATE AS "HashValidTo"
+        "TransactInvoiceDate"::DATE AS "TransactValidFrom",
+        '{{ dbt_date.date(9999, 12, 31) }}'::DATE AS "TransactValidTo"
         FROM source_data
 
 ),
@@ -76,27 +76,28 @@ denormalize_dims AS (
         j2."StockID"
     FROM set_validity m
     LEFT JOIN get_customers j1
-    ON m."HashCustomerID" = j1."CustomersID"
-        AND j1."CustomersValidFrom" <= m."HashValidFrom"
-        AND m."HashValidFrom" < j1."CustomersValidTo"
+    ON m."TransactCustomerID" = j1."CustomersID"
+        AND j1."CustomersValidFrom" <= m."TransactValidFrom"
+        AND m."TransactValidFrom" < j1."CustomersValidTo"
     LEFT JOIN get_stock j2
-    ON m."HashStockCode" = j2."StockCode"
-        AND j2."StockValidFrom" <= m."HashValidFrom"
-        AND m."HashValidFrom" < j2."StockValidTo"
+    ON m."TransactStockCode" = j2."StockCode"
+        AND j2."StockValidFrom" <= m."TransactValidFrom"
+        AND m."TransactValidFrom" < j2."StockValidTo"
 
 )
 
 SELECT
-    "HashID" AS "CancellationsHashID",
-    "HashLoadDate" AS "CancellationsLoadDate",
+    "TransactHashID" AS "CancellationsHashID",
+    "TransactLoadDate" AS "CancellationsLoadDate",
     "NewHashInvoiceNo" AS "CancellationsInvoiceNo",
-    "HashInvoiceDate" AS "CancellationsInvoiceDate",
-    "HashQuantity" AS "CancellationsQuantity",
-    "HashUnitPrice" AS "CancellationsUnitPrice",
+    "TransactInvoiceDate" AS "CancellationsInvoiceDate",
+    "TransactQuantity" AS "CancellationsQuantity",
+    "TransactUnitPrice" AS "CancellationsUnitPrice",
+    ("TransactUnitPrice" * "TransactQuantity")::NUMERIC AS "CancellationsRefunds",
     "StockID" AS "CancellationsStockID",
     "CustomersID" AS "CancellationsCustomersID",
-    "HashValidFrom" AS "CancellationsValidFrom",
-    "HashValidTo" AS "CancellationsValidTo"
+    "TransactValidFrom" AS "CancellationsValidFrom",
+    "TransactValidTo" AS "CancellationsValidTo"
 FROM denormalize_dims
 --WHERE "CustomersCountry" IS NULL
-ORDER BY "NewHashInvoiceNo", "HashValidFrom"
+ORDER BY "NewHashInvoiceNo", "TransactValidFrom"
