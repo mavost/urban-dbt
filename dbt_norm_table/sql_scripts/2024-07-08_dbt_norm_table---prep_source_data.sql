@@ -7,15 +7,15 @@
 
 -- validate seed table
 SELECT ird.*, rs."ID", rs."StockItem"
-FROM raw.ingest_retail_data ird 
-JOIN seeds.ref_stock rs
+FROM "00_raw"."00_ingest_retail_data_src" ird 
+JOIN "00_raw"."02_ref_stock" rs
 ON ird."StockCode" = rs."StockCode"
     AND ird."Description" = rs."Description"
 ORDER BY rs."ID" DESC;
 
 
 -- DDL table
-CREATE TABLE raw.ingest_retail_data (
+CREATE TABLE "00_raw"."00_ingest_retail_data_src" (
     "InvoiceNo" varchar(12) NULL,
     "StockCode" varchar(12) NULL,
     "Description" text NULL,
@@ -29,27 +29,27 @@ CREATE TABLE raw.ingest_retail_data (
 -- statistics after import using DBeaver
 SELECT
     count(*)
-FROM raw.ingest_retail_data ird;
+FROM "00_raw"."00_ingest_retail_data_src" ird;
 
 SELECT
     min( "InvoiceDate")
-FROM raw.ingest_retail_data_src irds;
+FROM "00_raw"."00_ingest_retail_data_src" irds;
 
 SELECT
     count(*)
-FROM raw.ingest_retail_data ird ORDER BY 1;
+FROM "00_raw"."00_ingest_retail_data_src" ird ORDER BY 1;
 
 -- clear table 
---TRUNCATE raw.ingest_retail_data;
+--TRUNCATE "00_raw"."00_ingest_retail_data_src";
 
 -- date diff (370d)
-SELECT max(irds."InvoiceDate") - min(irds."InvoiceDate") FROM raw.ingest_retail_data_src irds;
+SELECT max(irds."InvoiceDate") - min(irds."InvoiceDate") FROM "00_raw"."00_ingest_retail_data_src" irds;
 
 -- split data by 50d intervals into sep. tables
 DO $$
 DECLARE 
-    target_schema text := 'raw';
-    dataTable text := 'ingest_retail_data_src';
+    target_schema text := '00_raw';
+    dataTable text := '00_ingest_retail_data_src';
     dateFilter integer;
     countData integer;
     startdate date := '2010-11-30';
@@ -63,7 +63,7 @@ FOREACH dateFilter IN ARRAY ARRAY[
     LOOP
         fromDate := startdate + dateFilter;
         toDate := startdate + dateFilter + INTERVAL '50 DAY';
-        subTable := 'ingest_retail_days_' || text(dateFilter);
+        subTable := '00_ingest_retail_days_' || dateFilter::text;
 
         RAISE NOTICE '---';
         RAISE NOTICE 'FromDate: %', fromDate;
@@ -79,15 +79,16 @@ FOREACH dateFilter IN ARRAY ARRAY[
             "InvoiceDate" timestamp NULL,
             "UnitPrice" numeric NULL,
             "CustomerID" int4 NULL,
-            "Country" varchar(30) NULL
+            "Country" varchar(30) NULL,
+            "LoadDate" date NULL
         )';*/
         EXECUTE 'TRUNCATE TABLE ' || quote_ident(target_schema) || '.' || quote_ident(subTable);
 
         -- split off and add data to subset table
         EXECUTE 'INSERT INTO ' || quote_ident(target_schema) || '.' || quote_ident(subTable) || 
-        ' ("InvoiceNo", "StockCode", "Description", "Quantity", "InvoiceDate", "UnitPrice", "CustomerID", "Country") ' ||
+        ' ("InvoiceNo", "StockCode", "Description", "Quantity", "InvoiceDate", "UnitPrice", "CustomerID", "Country", "LoadDate") ' ||
         'SELECT icpa."InvoiceNo", icpa."StockCode", icpa."Description", icpa."Quantity", icpa."InvoiceDate", icpa."UnitPrice", ' ||
-        'icpa."CustomerID", icpa."Country" FROM '
+        'icpa."CustomerID", icpa."Country", ' || quote_literal(toDate) || ' FROM '
             || quote_ident(target_schema) || '.' || quote_ident(dataTable) || ' icpa WHERE icpa."InvoiceDate" < ' 
             || quote_literal(toDate) || ' AND icpa."InvoiceDate" >= ' || quote_literal(fromDate);
 
@@ -97,6 +98,6 @@ FOREACH dateFilter IN ARRAY ARRAY[
         INTO countData;
 
         RAISE NOTICE 'Count: %', countData;
-        
+
     END LOOP;
 END; $$;
