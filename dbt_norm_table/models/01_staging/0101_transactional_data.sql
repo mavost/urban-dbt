@@ -1,6 +1,23 @@
-{# {{ config(materialized='table') }} #}
+{% set rep_tables = [
+    '150'
+] %}
 
-WITH source_data AS (
+WITH 
+unionize AS (
+
+{% for rep_table in rep_tables -%}
+{% if not loop.first -%} UNION ALL {%- endif %}
+    
+    SELECT
+        *,
+        '{{ "00_ingest_retail_days_" + rep_table }}' AS "SourceTable"
+    FROM {{ source('ingest', "00_ingest_retail_days_" + rep_table) }}
+
+{% endfor -%}
+
+),
+
+source_data AS (
 
     SELECT
         "InvoiceNo",
@@ -11,9 +28,9 @@ WITH source_data AS (
         "UnitPrice",
         "CustomerID",
         "Country",
-        timezone('UTC', "LoadDate"::TIMESTAMP) AS "TransactLoadDate",
-        '00_ingest_retail_days_0' AS "SourceTable"
-    FROM {{ source('ingest', '00_ingest_retail_days_0') }}
+        "SourceTable",
+        timezone('UTC', "LoadDate"::TIMESTAMP) AS "TransactLoadDate"
+    FROM unionize
     WHERE
         "InvoiceNo" IS NOT NULL
         AND "StockCode" IS NOT NULL
