@@ -9,9 +9,9 @@ WITH source_data AS (
         "UnitPrice",
         "CustomerID",
         "Country",
-        'ingest_retail_days_0' AS "SourceTable"
-    FROM {{ source('ingest', 'ingest_retail_days_0') }}
-
+        timezone('UTC', "LoadDate"::TIMESTAMP) AS "LoadDate",
+        '00_ingest_retail_days_0' AS "SourceTable"
+    FROM {{ source('ingest', '00_ingest_retail_days_0') }}
     WHERE
         "InvoiceNo" IS NULL
         OR "StockCode" IS NULL
@@ -20,10 +20,10 @@ WITH source_data AS (
 
 ),
 
-incremental_load AS (
+error_description AS (
 
     SELECT
-        {{ dbt_date.now('UTC') }}::TIMESTAMPTZ AT TIME ZONE 'UTC' AS "NullLoadDate",
+        "LoadDate" AS "NullLoadDate",
         "SourceTable"::VARCHAR(30) AS "NullSourceTable",
         "InvoiceNo"::VARCHAR(12) AS "NullInvoiceNo",
         "StockCode"::VARCHAR(12) AS "NullStockCode",
@@ -49,4 +49,4 @@ SELECT
     row_number()
         OVER (PARTITION BY "NullLoadDate" ORDER BY "NullInvoiceNo")
     ::INTEGER AS "NullKeyID"
-FROM incremental_load
+FROM error_description

@@ -11,8 +11,9 @@ WITH source_data AS (
         "UnitPrice",
         "CustomerID",
         "Country",
-        'ingest_retail_days_0' AS "SourceTable"
-    FROM {{ source('ingest', 'ingest_retail_days_0') }}
+        timezone('UTC', "LoadDate"::TIMESTAMP) AS "TransactLoadDate",
+        '00_ingest_retail_days_0' AS "SourceTable"
+    FROM {{ source('ingest', '00_ingest_retail_days_0') }}
     WHERE
         "InvoiceNo" IS NOT NULL
         AND "StockCode" IS NOT NULL
@@ -25,6 +26,7 @@ cleaned_data AS (
 
     SELECT
         "SourceTable"::VARCHAR(30) AS "TransactSourceTable",
+        "TransactLoadDate",
         "InvoiceNo"::VARCHAR(12) AS "TransactInvoiceNo",
         upper("StockCode")::VARCHAR(12) AS "TransactStockCode",
         coalesce("Description", '')::VARCHAR(60) AS "TransactDescription",
@@ -47,7 +49,6 @@ hashed_data AS (
             || "TransactUnitPrice"::VARCHAR(12) || "TransactCustomerID"::VARCHAR(12)
             || "TransactCountry"
         )::UUID AS "TransactHashID",
-        timezone('UTC', {{ dbt_date.now('UTC') }}::TIMESTAMP) AS "TransactLoadDate",
         *
 
     FROM cleaned_data
@@ -55,8 +56,9 @@ hashed_data AS (
 )
 
 SELECT
-    "TransactHashID",
+    "TransactSourceTable",
     "TransactLoadDate",
+    "TransactHashID",
     row_number()
         OVER (PARTITION BY "TransactHashID" ORDER BY "TransactLoadDate")
     ::INTEGER AS "TransactRowCount",

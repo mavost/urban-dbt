@@ -5,12 +5,11 @@ sources:
     schema: 00_raw
 
     tables:
-      - name: ingest_retail_data
-      - name: ingest_retail_days_0
-      - name: ingest_retail_days_50
-      - name: ingest_retail_days_100
-      - name: ingest_retail_days_150
-      - name: ingest_retail_days_200
-      - name: ingest_retail_days_250
-      - name: ingest_retail_days_300
-      - name: ingest_retail_days_350
+      - name: 00_ingest_retail_days_0
+      - name: 00_ingest_retail_days_50
+      - name: 00_ingest_retail_days_100
+      - name: 00_ingest_retail_days_150
+      - name: 00_ingest_retail_days_200
+      - name: 00_ingest_retail_days_250
+      - name: 00_ingest_retail_days_300
+      - name: 00_ingest_retail_days_350
