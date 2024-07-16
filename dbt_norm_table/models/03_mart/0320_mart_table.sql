@@ -11,7 +11,7 @@ WITH
 get_max AS 
 (
 
-    SELECT DISTINCT
+    SELECT
         max(s."SpineValidTo") AS "MaxDate"
     FROM ( SELECT DISTINCT "SpineValidTo" FROM {{ this }} ) s
 
