@@ -3,16 +3,21 @@ version: 2
 models:
   - name: 0301_orders_returns_facts
     description: "fact table for orders/cancellations"
-    columns:
-      - name: '"OrdersHashID"'
+    # columns:
+    #  - name: '"OrdersHashID"'
 
   - name: 0311_customers_dim
     description: "customer dimension"
-    columns:
-      - name: '"CustomersID"'
-      - name: '"CustomersValidFrom"'
+    # columns:
+    #  - name: '"CustomersID"'
+    #  - name: '"CustomersValidFrom"'
 
   - name: 0312_stock_dim
     description: "stock dimension"
-    columns:
-      - name: '"StockCode"'
+    # columns:
+    #  - name: '"StockCode"'
+
+  - name: 0320_mart_table
+    description: "reporting table"
+    # columns:
+    #  - name: '"SpineID"'

@@ -1,6 +1,6 @@
 {# {{
     config(
-        unique_key=['"OrdRetHashID"']
+        unique_key=['"SpineID"', '"OrdRetInvoiceNo"', '"OrdRetInvoiceDate"', '"OrdRetStockID"', '"OrdRetCancellation"']
     )
 }} #}
 
