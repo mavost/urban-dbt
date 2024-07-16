@@ -11,7 +11,7 @@ get_minmax AS
     SELECT 
         min("MinDate") AS "MinDate",
         max("MaxDate") AS "MaxDate"
-    FROM {{ ref('0503_date_statistics') }}
+    FROM {{ ref('0230_date_statistics') }}
 
 ),
 get_spine AS (

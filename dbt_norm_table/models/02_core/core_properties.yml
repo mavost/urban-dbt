@@ -31,3 +31,6 @@ models:
     description: "historical shipping country data"
     columns:
       - name: '"CountriesName"'
+
+  - name: 0230_date_statistics
+    description: "date ranges"
