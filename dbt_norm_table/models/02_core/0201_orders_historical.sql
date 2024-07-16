@@ -64,7 +64,8 @@ denormalize_dims AS (
         m.*,
         j1."CustomersID",
         --j1."CustomersCountry",
-        --j2."StockDescription",
+        --m."TransactDescription" AS debug1,
+        --m."TransactStockCode" AS debug2,
         j2."StockID"
     FROM set_validity m
     LEFT JOIN get_customers j1
@@ -90,6 +91,9 @@ SELECT
     "CustomersID" AS "OrdersCustomersID",
     "TransactValidFrom" AS "OrdersValidFrom",
     "TransactValidTo" AS "OrdersValidTo"
+    --,debug1
+    --,debug2
 FROM denormalize_dims
 --WHERE "CustomersCountry" IS NULL
+--WHERE "StockID" IS NULL
 ORDER BY "TransactInvoiceNo", "TransactValidFrom"
