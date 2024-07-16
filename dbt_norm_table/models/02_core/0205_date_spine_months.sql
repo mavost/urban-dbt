@@ -1,9 +1,16 @@
+{{
+    config(
+        materialized='view',
+        unique_key=['"SpineID"']
+    )
+}}
+
 WITH source_data AS (
 
     {{ dbt_utils.date_spine(
         datepart="month",
-        start_date="cast('2018-01-01' as date)",
-        end_date="cast('2026-01-02' as date)"
+        start_date="cast('2008-01-01' as date)",
+        end_date="cast('2025-01-02' as date)"
     )
     }}
 

@@ -11,6 +11,11 @@ models:
     columns:
       - name: '"CancellationsHashID"'
 
+  - name: 0205_date_spine_months
+    description: "reporting scaffolding"
+    columns:
+      - name: '"SpineID"'
+
   - name: 0211_customers_historical
     description: "historical customer data"
     columns:
