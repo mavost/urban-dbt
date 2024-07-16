@@ -1,10 +1,10 @@
 version: 2
 
 models:
-  - name: 0101_hashed_data
+  - name: 0101_transactional_data
     description: "Table loading with de-duplication"
     columns:
-      - name: '"HashID"'
+      - name: '"TransactHashID"'
         description: "The primary key for this table"
         tests:
           - not_null
