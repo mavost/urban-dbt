@@ -1,29 +1,50 @@
-{{
+{# {{
     config(
-        unique_key=['"StockCode"']
+        unique_key=['"SpineID"', '"StockDimStockID"']
     )
-}}
+}} #}
 
-WITH source_data AS (
+WITH 
+get_minmax AS 
+(
+
+    SELECT 
+        min("MinDate") AS "MinDate",
+        max("MaxDate") AS "MaxDate"
+    FROM {{ ref('0503_date_statistics') }}
+
+),
+get_spine AS (
+    SELECT
+        "SpineID",
+        "SpineValidFrom",
+        "SpineValidTo",
+        "SpineReportingDays"
+    FROM {{ ref('0205_date_spine_months') }}
+    WHERE TRUE
+        AND "SpineValidTo" >= (SELECT "MinDate" FROM get_minmax)
+        AND "SpineValidFrom" <= (SELECT "MaxDate" FROM get_minmax)
+        
+),
+get_stock AS (
 
     SELECT
-        *,
-        '{{ dbt_date.date(2000, 1, 1) }}'::DATE AS "StockValidFrom",
-        '{{ dbt_date.date(9999, 12, 31) }}'::DATE AS "StockValidTo"
-    FROM {{ ref('0112_stock_load') }}
-    {% if is_incremental() %}
-        WHERE "StockCode" NOT IN (SELECT DISTINCT "StockCode" FROM {{ this }})
-    {% else %}
-        WHERE TRUE
-    {% endif %}
+        j."SpineID",
+        j."SpineValidFrom",
+        j."SpineValidTo",
+        j."SpineReportingDays",
+        m."StockID" AS "StockDimStockID",
+        m."StockCode" AS "StockDimCode",
+        m."StockDescription" AS "StockDimDescription"
+    FROM {{ ref('0212_stock_historical') }} m
+    INNER JOIN get_spine j
+    ON TRUE
+        AND m."StockValidFrom" <= j."SpineValidTo"
+        AND m."StockValidTo" >= j."SpineValidFrom"
 
 )
 
-SELECT
-    "StockID",
-    "StockCode",
-    "StockDescription",
-    "StockValidFrom",
-    "StockValidTo"
-FROM source_data
-ORDER BY "StockDescription", "StockCode"
+SELECT 
+    *
+FROM get_stock
+ORDER BY "SpineValidFrom", "StockDimStockID"
