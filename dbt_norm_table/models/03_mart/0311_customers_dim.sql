@@ -1,131 +1,90 @@
-{{
+{# {{
     config(
-        unique_key=['"CustomersID"', '"CustomersGroupID"']
+        unique_key=['"OrdRetHashID"']
     )
-}}
+}} #}
 
-WITH
-get_ids AS (
+WITH 
+get_minmax AS 
+(
 
-    SELECT DISTINCT "CustomersID"
-    FROM {{ ref('0111_customers_load') }}
+    SELECT 
+        min("MinDate") AS "MinDate",
+        max("MaxDate") AS "MaxDate"
+    FROM {{ ref('0503_date_statistics') }}
 
-    {% if is_incremental() %}
-        WHERE
-            "CustomersPurchaseTime"
-            > (
-                SELECT
-                    max("CustomersPurchaseTime")
-                    - INTERVAL '{{ var("overlap_interval") }}'
-                FROM {{ this }}
-            )
-    {% else %}
+),
+get_spine AS (
+    SELECT
+        "SpineID",
+        "SpineValidFrom",
+        "SpineValidTo",
+        "SpineReportingDays"
+    FROM {{ ref('0205_date_spine_months') }}
     WHERE TRUE
-    {% endif %}
-
+        AND "SpineValidTo" >= (SELECT "MinDate" FROM get_minmax)
+        AND "SpineValidFrom" <= (SELECT "MaxDate" FROM get_minmax)
+        
 ),
-
-source_data AS (
-
-    SELECT
-        *,
-        row_number()
-            OVER (
-                PARTITION BY "CustomersID", "CustomersGroupID"
-                ORDER BY "CustomersPurchaseTime"
-            )
-        ::INTEGER AS "RowFilter"
-    FROM {{ ref('0111_customers_load') }}
-    WHERE "CustomersID" IN (SELECT "CustomersID" FROM get_ids)
-),
-
-add_row_labels AS (
-
-    SELECT
-        *,
-        row_number()
-            OVER (PARTITION BY "CustomersID" ORDER BY "CustomersPurchaseTime")
-        ::INTEGER AS "RowNumberASC",
-        row_number()
-            OVER (PARTITION BY "CustomersID" ORDER BY "CustomersPurchaseTime" DESC)
-        ::INTEGER AS "RowNumberDESC"
-    FROM source_data
-    WHERE "RowFilter" = 1
-
-),
-
-/*
-only_multiples AS (
-
-    SELECT DISTINCT "CustomersID"
-    FROM add_row_labels
-    WHERE "RowNumberASC" > 1
-
-),
-*/
-get_neighbor_timestamp AS (
-
-    SELECT
-        *,
-        lead("CustomersPurchaseTime")
-            OVER (PARTITION BY "CustomersID" ORDER BY "RowNumberASC")
-        AS "NextPurchaseTime"
-    FROM add_row_labels
-    --WHERE "CustomersID" IN (SELECT "CustomersID" FROM only_multiples)
-
-),
-
-set_validity AS (
-
-    SELECT
-        *,
-        CASE
-            WHEN "RowNumberASC" = 1 THEN '{{ var("start_date") }}'
-            ELSE "CustomersPurchaseTime"
-        END::DATE AS "CustomersValidFrom",
-        CASE
-            WHEN "RowNumberDESC" = 1 THEN '{{ var("stop_date") }}'
-            ELSE "NextPurchaseTime"
-        END::DATE AS "CustomersValidTo"
-    FROM get_neighbor_timestamp
-
-),
-
 get_countries AS (
 
-    SELECT * 
-    FROM {{ ref('0213_countries_historical') }}
-    WHERE "CountriesValidFrom" <= CURRENT_DATE
-        AND CURRENT_DATE < "CountriesValidTo"
+    SELECT
+        j."SpineID",
+        j."SpineValidFrom",
+        j."SpineValidTo",
+        j."SpineReportingDays",
+        m."CountriesID",
+        m."CountriesName",
+        m."CountriesContinent",
+        m."CountriesBusinessRegion",
+        m."CountriesValidFrom",
+        m."CountriesValidTo"
+    FROM {{ ref('0213_countries_historical') }} m
+    INNER JOIN get_spine j
+    ON TRUE
+        AND m."CountriesValidFrom" <= j."SpineValidTo"
+        AND m."CountriesValidTo" >= j."SpineValidFrom"
 
 ),
-
-normalize_dims AS (
+get_customers AS (
 
     SELECT
-    "CustomersID",
-    "CustomersGroupID",
-    "CustomersCountry",
-    j."CountriesName",
-    j."CountriesID"::INTEGER AS "CustomersCountryID",
-    "CustomersPurchaseTime",
-    "CustomersValidFrom",
-    "CustomersValidTo"
-    FROM set_validity m
-    LEFT JOIN get_countries j
-    --INNER JOIN get_countries j
-    ON m."CustomersCountry" = j."CountriesName"
+        j."SpineID",
+        j."SpineValidFrom",
+        j."SpineValidTo",
+        j."SpineReportingDays",
+        m."CustomersID",
+        m."CustomersGroupID",
+        m."CustomersCountryID",
+        m."CustomersValidFrom",
+        m."CustomersValidTo"
+    FROM {{ ref('0211_customers_historical') }} m
+    INNER JOIN get_spine j
+    ON TRUE
+        AND m."CustomersValidFrom" <= j."SpineValidTo"
+        AND m."CustomersValidTo" >= j."SpineValidFrom"
 
+),
+join_country_customers AS (
+    SELECT
+        m."SpineID",
+        m."SpineValidFrom",
+        m."SpineValidTo",
+        m."SpineReportingDays",
+        m."CustomersID" AS "CustDimCustomerID",
+        m."CustomersValidFrom" AS "CustDimValidFrom",
+        m."CustomersValidTo" AS "CustDimValidTo",
+        j."CountriesName" AS "CustDimCountryName",
+        j."CountriesContinent" AS "CustDimContinent",
+        j."CountriesBusinessRegion" AS "CustDimBusinessRegion"
+        FROM get_customers m
+    INNER JOIN get_countries j
+    ON TRUE
+        AND m."SpineID" = j."SpineID"
+        AND m."CustomersCountryID" = j."CountriesID"
 )
 
-SELECT
-    "CustomersID",
-    "CustomersGroupID",
-    "CustomersCountryID",
-    "CustomersCountry",
-    "CustomersPurchaseTime",
-    "CustomersValidFrom",
-    "CustomersValidTo"
-FROM normalize_dims
---WHERE "CustomersCountryID" IS NULL
-ORDER BY "CustomersID", "CustomersGroupID"
+SELECT 
+    *
+FROM join_country_customers
+ORDER BY "SpineValidFrom", "CustDimCustomerID", "CustDimValidFrom"
