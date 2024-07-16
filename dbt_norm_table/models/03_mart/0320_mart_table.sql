@@ -12,7 +12,7 @@ SELECT
     --m."OrdRetStockID",
     --m."OrdRetCustomersID",
     m."OrdRetCancellation",
-    --j1."CustDimCustomerID",
+    j1."CustDimCustomerID",
     --j1."CustDimValidFrom",
     --j1."CustDimValidTo",
     j1."CustDimCountryName",
@@ -25,8 +25,9 @@ FROM {{ ref('0301_orders_returns_facts') }} m
 INNER JOIN {{ ref('0311_customers_dim') }} j1
 ON j1."SpineID" = m."SpineID"
     AND j1."CustDimCustomerID" = m."OrdRetCustomersID"
+    -- date ranges are not inclusive in ValidTo apart from the reporting spine's range
     AND j1."CustDimValidFrom" <= m."OrdRetInvoiceDate"::DATE
-    AND m."OrdRetInvoiceDate"::DATE <= j1."CustDimValidTo"
+    AND m."OrdRetInvoiceDate"::DATE < j1."CustDimValidTo"
 INNER JOIN {{ ref('0312_stock_dim') }} j2
 ON j2."SpineID" = m."SpineID"
     AND j2."StockDimStockID" = m."OrdRetStockID"
