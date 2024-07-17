@@ -5,6 +5,14 @@
     )
 }}
 
+/*  - incremental load: adds only invoices younger than most recent (50d ago)
+    -   option: to exagerate the load by additional temporal offset
+    - de-duplication: filter out order items that are truly identical rows
+    -   note: there still exist invoices # with duplicate stock-ids but different 
+        order quantitites
+*/
+
+
 WITH 
 get_ids AS (
 
