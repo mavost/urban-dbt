@@ -40,7 +40,7 @@ get_orders_cancellations AS (
         "OrdersValidTo" AS "OrdRetValidTo",
         FALSE::BOOLEAN AS "OrdRetCancellation"
     FROM {{ ref('0201_orders_historical') }}
-    UNION
+    UNION ALL
     SELECT
         "CancellationsInvoiceNo" AS "OrdRetInvoiceNo",
         "CancellationsInvoiceDate" AS "OrdRetInvoiceDate",
@@ -69,12 +69,7 @@ SELECT
     j."OrdRetCustomersID",
     j."OrdRetCancellation"
 FROM get_spine m
-JOIN get_orders_cancellations j
+INNER JOIN get_orders_cancellations j
 ON m."SpineValidFrom" <= j."OrdRetInvoiceDate"::DATE
     AND j."OrdRetInvoiceDate"::DATE <= m."SpineValidTo"
 ORDER BY m."SpineValidFrom", j."OrdRetInvoiceNo"
-
-
-
-
-
