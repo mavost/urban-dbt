@@ -1,10 +1,8 @@
 version: 2
 
 models:
-  - name: 0501_null_key_data
-    description: "incompleted ingestion data"
-    columns:
-      - name: NullKeyID
+  - name: 0501_staging_statistics
+    description: "statistics on ingestion data"
 
   - name: 0502_core_statistics
     description: "duplicate, orders, cancellation ingestion data"

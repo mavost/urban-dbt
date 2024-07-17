@@ -1,57 +1,32 @@
-WITH source_data AS (
+WITH
+
+orders AS (
 
     SELECT
-        *
-    FROM {{ ref("0101_transactional_data") }}
-
-),
-
-duplicates AS (
-
-    SELECT
-        "TransactLoadDate",
-        'Hash Duplicates'::VARCHAR(30) AS "StatsDescription",
+        "OrdersLoadDate" AS "StatsLoadDate",
+        'Orders'::VARCHAR(30) AS "StatsDescription",
         count(*)::INTEGER AS "StatsCount"
-    FROM source_data
-    WHERE "TransactRowCount" > 1
-    GROUP BY "TransactLoadDate"
+    FROM {{ ref("0201_orders_historical") }}
+    GROUP BY "OrdersLoadDate"
 
 ),
 
 cancellations AS (
 
     SELECT
-        "TransactLoadDate",
-        'Hash Cancellations'::VARCHAR(30) AS "StatsDescription",
+        "CancellationsLoadDate" AS "StatsLoadDate",
+        'Cancellations'::VARCHAR(30) AS "StatsDescription",
         count(*)::INTEGER AS "StatsCount"
-    FROM source_data
-    WHERE "TransactRowCount" = 1
-        AND "TransactInvoiceNo" LIKE 'C%'
-    GROUP BY "TransactLoadDate"
-
-),
-
-orders AS (
-
-    SELECT
-        "TransactLoadDate",
-        'Hash Orders'::VARCHAR(30) AS "StatsDescription",
-        count(*)::INTEGER AS "StatsCount"
-    FROM source_data
-    WHERE "TransactRowCount" = 1
-        AND "TransactInvoiceNo" NOT LIKE 'C%'
-    GROUP BY "TransactLoadDate"
+    FROM {{ ref("0202_cancellations_historical") }}
+    GROUP BY "CancellationsLoadDate"
 
 )
 
 SELECT
     *
-FROM duplicates
+FROM orders
 UNION ALL
 SELECT
     *
 FROM cancellations
-UNION ALL
-SELECT
-    *
-FROM orders
+ORDER BY "StatsLoadDate"
