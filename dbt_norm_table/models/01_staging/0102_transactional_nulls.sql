@@ -1,30 +1,27 @@
-WITH source_data AS (
+{% set rep_tables = [
+    '150'
+] %}
 
+WITH 
+unionize AS (
+
+{% for rep_table in rep_tables -%}
+{% if not loop.first -%} UNION ALL {%- endif %}
+    
     SELECT
-        "InvoiceNo",
-        "StockCode",
-        "Description",
-        "Quantity",
-        "InvoiceDate",
-        "UnitPrice",
-        "CustomerID",
-        "Country",
-        timezone('UTC', "LoadDate"::TIMESTAMP) AS "LoadDate",
-        '00_ingest_retail_days_0' AS "SourceTable"
-    FROM {{ source('ingest', '00_ingest_retail_days_0') }}
-    WHERE
-        "InvoiceNo" IS NULL
-        OR "StockCode" IS NULL
-        OR "InvoiceDate" IS NULL
-        OR "CustomerID" IS NULL
+        '{{ "00_ingest_retail_days_" + rep_table }}' AS "SourceTable",
+        *
+    FROM {{ source('ingest', "00_ingest_retail_days_" + rep_table) }}
+
+{% endfor -%}
 
 ),
 
-error_description AS (
+source_data AS (
 
     SELECT
-        "LoadDate" AS "NullLoadDate",
         "SourceTable"::VARCHAR(30) AS "NullSourceTable",
+        timezone('UTC', "LoadDate"::TIMESTAMP) AS "NullLoadDate",
         "InvoiceNo"::VARCHAR(12) AS "NullInvoiceNo",
         "StockCode"::VARCHAR(12) AS "NullStockCode",
         "Description"::VARCHAR(60) AS "NullDescription",
@@ -40,7 +37,12 @@ error_description AS (
             WHEN "CustomerID" IS NULL THEN 'Missing CustomerID'
             ELSE 'unknown'
         END::VARCHAR(22) AS "NullErrorType"
-    FROM source_data
+    FROM unionize
+    WHERE
+        "InvoiceNo" IS NULL
+        OR "StockCode" IS NULL
+        OR "InvoiceDate" IS NULL
+        OR "CustomerID" IS NULL
 
 )
 
@@ -49,4 +51,4 @@ SELECT
     row_number()
         OVER (PARTITION BY "NullLoadDate" ORDER BY "NullInvoiceNo")
     ::INTEGER AS "NullKeyID"
-FROM error_description
+FROM source_data

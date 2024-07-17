@@ -9,6 +9,15 @@ models:
         tests:
           - not_null
 
+  - name: 0102_transactional_nulls
+    description: "Table reporting rows with null values"
+    columns:
+      - name: '"NullKeyID"'
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null
+
   - name: 0111_customers_load
     description: "Table loading"
     columns:
