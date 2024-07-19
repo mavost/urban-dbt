@@ -113,6 +113,14 @@ to be displayed in the web browser. Noteworthy files are:
     - `manifest.json`: Containing a full representation of your dbt project's resources (models, tests, macros, etc).
     - `catalog.json`: Serves information about the tables and views produced and defined by the resources in your project.
 
+7. Quickly, also mentioning the `Makefile` in this project which carries more weight in larger dbt projects:
+
+    - Running `make dbt_run_refresh` will fully seed, recreate, test each individual model stage, here, they are called
+    *marts* and *staging* one after the other and stopping the build process upon failure.
+    - Running `make dbt_run` will recreate and test the models only by their increment, which carries no weight in 
+    this configuration. See [incremental loading](https://next.docs.getdbt.com/docs/build/incremental-models-overview) for further details.
+    - All the code quality features found under `make help` are also available.
+
 ### Transactional data normalization and de-normalization (dbt_norm_table)
 
 The data set used here contains transactional data from a retail store covering:
@@ -124,6 +132,35 @@ The data set used here contains transactional data from a retail store covering:
 
 It was kindly provided through the [Kaggle community](https://www.kaggle.com/datasets/ishanshrivastava28/tata-online-retail-dataset). It turned out that the data also contains
 stock management information, when items were lost/destroyed/damaged.
+
+To properly make use of these data it became apparent that a certain level data cleaning is required during
+dbt's loading process.
+The result of an explorative data analysis and wrangling can be found in `analyses/2024-07-17_preparing_seeds.ipynb`.
+The seed files provided in `seeds/*csv` can be re-created using this notebook plus some feature engineering by LLMs.
+
+In this project most things run out of the box, but some initial setup is required still:
+
+1. The Kaggle data needs to be manually imported to the DB using a DB Admin tool and a scripted approach.
+One can opt to either use the 500k rows of data as a whole or split them into packages defined by a time interval.
+There is a [script](./sql-scripts/2024-07-08_dbt_norm_table---prep_source_data.sql) provided to facilitate that task.
+
+2. Once the data is "manually" ingested it can be processed by pointing the `models/sources_properties.yml` to the proper
+tables and selecting the respective references in `staging/0101_transactional_data.sql` and `staging/0102_transactional_nulls.sql`.
+*We strongly advise to replicate the initial setup before making individual customizations*.
+
+3. Similar to the previous project example there are `Makefile` targets to simplify a structurally consistent deployment:
+
+    - Running `make dbt_run_refresh` will fully seed, recreate, test each individual model stage:  
+    *stage*, *core*, *mart* and *stats* point to respective schemas in the DB instances database.
+    The build process stops upon failure.
+    - Running `make dbt_incremental` will add any data to realized models of that [flavor](https://next.docs.getdbt.com/docs/build/incremental-models-overview).
+    The common scenario is that a new batch of ingest data only contains a few lines and does not require a full rebuild of the data model.
+    We can either simulate this be adding a new set of data to the source table by SQL `INSERT` or by simulating a
+    incremental condition, e.g. `make dbt_incremental REFRESH="--vars 'overlap_interval: \"2 Days\"'"` as this
+    parameter has been coded into the incremental models for this show case.
+
+4. All the code quality features found under `make help` are also available. We advise to employ `make sqlfluff_lint` and `make prettier_reformat`
+ahead of a pull/merge request in order to bring consistency to the SQL/YAML code base.
 
 ## Additional helper functions
 
