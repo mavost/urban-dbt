@@ -1,8 +1,8 @@
-# A simple dbt working environment
+# A customizable dbt working environment
 
 *Date:* 2024-05-07  
 *Author:* MvS  
-*keywords:* data engineering, dbt, data build tool, linter
+*keywords:* data engineering, dbt, data build tool, data warehouse, linter, code style
 
 ## Description
 
@@ -17,61 +17,79 @@ The description from the [project website](https://docs.getdbt.com/docs/introduc
 
 ## Prerequisites
 
-- This project was created on Ubuntu flavor linux,
-- using Python version 3.10,
-- a Node installation v.18.18 or greater, see `nvm ls`,
-- and Gnu make.
-- We assume that either the `~/.dbt/profile.yml` will point to a working data
-storage or the developer is familiar with setting up, e.g., a docker container with a postgreSQL
-instance on his laptop.
+This project was created for:
 
-## General tool setup
+- Ubuntu linux but should be fairly easily portable to other OS'es.
+- It uses Python version 3.10 in a separate [Python environment](https://docs.python.org/3/library/venv.html) which also supports [Jupyter notebooks](https://code.visualstudio.com/docs/datascience/jupyter-notebooks).
+- [Node installation](https://bluevps.com/blog/how-to-install-nodejs-on-ubuntu-2204) v.18.18 or greater, see `nvm ls`,
+- It also uses Gnu [make](https://www.gnu.org/software/make/) v. 4.3.
 
-- Run `make help` to get an overview of various helper functions.
-- Run `make setup-env` to install a python environment into the git project which will
-include the relevant dependencies.
-- Run `make dbt_debug` to check the configuration of the default showcase dbt project.
+## General environment setup
 
-## Simple Example (pg_source)
+- In the developer's home directory a [dbt connection file](https://docs.getdbt.com/docs/core/connect-data-platform/profiles.yml), called `profile.yml` will have to be set up.
+- We assume that either the `~/.dbt/profile.yml` will point to a pre-existing relational DB/lake-/warehouse data storage or the developer is familiar with setting up, e.g., a [Docker](https://docs.docker.com/) container with a [postgreSQL](https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/) instance on his laptop.
+- We advise to use admin role credentials on a dev DB instance for fast prototyping and reduce this to minimal CRUD permissions specifically to the AOI on a production system.
+- We encourage to connect to any DB admin tool of choice, in parallel of the ongoing dbt coding, e.g., [DBeaver](https://dbeaver.io/). This can be used to test/filter new model components.
+- The Makefile in the repository's root is designed to help set up and manage the development environment. It includes tasks for setting up the Python/Node environment and testing the executables for running linters, formatting code, and cleaning up:
 
-1. Either use a pre-existing database connection or set up a docker container, e.g.,
-with a postgreSQL instance, admin role credentials and connection string should used
-to connect to any DB admin tool of choice, e.g., [DBeaver](https://dbeaver.io/).
+  - `make setup_env`  
+    Install local Python/Node environment with dbt, linters, etc. This Makefile target installs all necessary dependencies listed in `requirements-dbt.txt` and `package.json`.
+  - `make verify_install`  
+    Check environment installation and command versions.
+  - `make clean`  
+    Clean up environment files - removes the Python virtual environment and Node modules.
 
-2. (Optional): Creating a new dbt project:
-    - For *dbt_toy_model*, create **source** schema on database instance and populate it
-    with a table containing some data, see [script](./scripts/00_source.sql).
+### Usage
+
+Run `make <target>` to execute the desired target. For example, use `make setup_env` to set up the environment.
+
+### Additional notes
+
+- The environment variable `DBT_PROJECT_NAME` does not need to be changed here as each
+dbt project contains its own Makefile for specific use with the Python/Node environment.
+
+- This approach was chosen to allow an individual customization of `dbt run` / `dbt test` for each dbt project's data modelling layer structure.
+
+## List of available dbt projects in this repository
+
+### Simple example from initial configuration (pg_source)
+
+This example follows the first steps to set up a new project and adds another transformation
+using dbt macros, see, `./models/loading`. It does not contain another Makefile for the sake
+of illustrating the main commands and simplicity.
+
+1. Consider that the dbt environment has been set up correctly and a database connection has been established to a database with sufficient permissions to create schemas/tables/views.
+
+2. Using your DB admin tool, manually create a `source` schema on the database instance in database *pg_source* and populate it with a table containing some data, see [script](./sql-scripts/00_source.sql).
+
+3. (Skipable): Creating a new dbt project:
 
     - Create a project folder *<project_name>* to host all dbt data engineering and use this directory.
-
     - Run `dbt init`and fill out the required info on DB connectivity, specify *<project_name>* and **target** schema which dbt will work on, pulling data from the **source**. A project environment will created in the directory and a `~/.dbt/profile.yml` will store the connectivity information. Both will be linked via a `dbt_project.yml` file in the project root.
 
-3. Run `cd pg_source && dbt debug` to verify that the connection to the postgres instance is working.
+4. Run `cd pg_source && dbt debug` to verify that the connection to the postgres instance is working.
 
-4. Observe the fine-grained configuration options within each `*.yml` file which can overwrite more nested options
-within the more genral model layers definitions.
+5. Observe the fine-grained, recursive configuration options within each `*.yml` file which can be overwritten by more deeply-nested model layers definitions.
 
-5. Run  `dbt run --select "models/example/my_first_dbt_model.sql"` for a "hello world" experience.
+6. Run  `dbt run --select "models/example/my_first_dbt_model.sql"` for a "hello world" experience.
 
-6. After a run has concluded it would be appropriate to use a testing workflow to verify the integrity
-of the layers and tables generated, e.g., `dbt test --select "models/example/my_first_dbt_model.sql"` invoking
-generic tests on certain fields of a table. The testing criteria are specified in the `schema.yml` of the respective data model component. There are options for singular test cases, generic test cases,
+7. After a run has concluded it would be appropriate to use a testing workflow to verify the integrity
+of the layers and tables generated, e.g., `dbt test --select "models/example/my_first_dbt_model.sql"` invoking generic tests on certain fields of a table. The testing criteria are specified in the `schema.yml` of the respective data model component. There are options for singular test cases, generic test cases,
 and unit tests.
 
-7. Run `dbt deps` to install additional modules, specified in `packages.yml` which provide advanced
+8. Run `dbt deps` to install additional modules, specified in `packages.yml` which provide advanced
 functionality beyond the scope of `dbt-core`, e.g. timestamp functions of the `dbt_date` package.
+In this way another model can be run using `dbt run --select "models/loading/my_first_transformation.sql"`
 
-## A more elaborate example (jaffle_shop-dev)
+### A more elaborate example from dbt's website (jaffle_shop)
 
 This project has been taken from dbt's [Github](https://github.com/clrcrl/jaffle_shop) page and slightly extended:
 
-1. Switch directory to the dbt model and confirm that the connection is working:
-`cd jaffle_shop-dev && dbt debug`
+1. Note, as mentioned before, that for most commands a target database has to be specified, e.g., `dbt run --target dev`. In the `~/.dbt/profiles.yml` we can define connections `[local, dev, prod]` and default targets that would usually point to `dev` or `local` instances.  
+One should deploy new model code to production systems after rigorous testing, only.
 
-2. Note that for most commands a target woudatabase has to be specified, e.g., `dbt run --target dev`.
-In the `~/.dbt/profiles.yml` we can define connections `[local, dev, prod]` and default targets that would
-usually point to `dev` or `local` instances.  
-We would deploy to production after rigorous testing, only.
+2. Switch directory to the dbt model and confirm that the connection is working:
+`cd jaffle_shop && dbt debug`
 
 3. To source a simple start schema data mart we upload, or *seed*, a set of `*.csv` data files
 found in the `./seeds` folder to the database using `dbt seed`. This simulates the landing stage
@@ -93,14 +111,21 @@ You can even run `dbt docs serve --target dev` to create a local [website](http:
 to be displayed in the web browser. Noteworthy files are:
 
     - `manifest.json`: Containing a full representation of your dbt project's resources (models, tests, macros, etc).
-
     - `catalog.json`: Serves information about the tables and views produced and defined by the resources in your project.
 
-## Tata data set
+### Transactional data normalization and de-normalization (dbt_norm_table)
 
-Kindly provided by the [Kaggle community](https://www.kaggle.com/datasets/ishanshrivastava28/tata-online-retail-dataset).
+The data set used here contains transactional data from a retail store covering:
 
-## Helpers
+- Consists of 12 months of transactions, approx. 500k rows,
+- It covers orders and partial cancellations/returns of orders,
+- Approximately 4000 product items for home furnishings and decorations,
+- Recurring orders by approx. 4000 customers from 30 countries.
+
+It was kindly provided through the [Kaggle community](https://www.kaggle.com/datasets/ishanshrivastava28/tata-online-retail-dataset). It turned out that the data also contains
+stock management information, when items were lost/destroyed/damaged.
+
+## Additional helper functions
 
 1. Install the command completion for dbt as specified, [here](https://github.com/dbt-labs/dbt-completion.bash).
 
@@ -110,18 +135,19 @@ Kindly provided by the [Kaggle community](https://www.kaggle.com/datasets/ishans
     echo 'source ~/.dbt-completion.bash' >> ~/.bash_profile
     ```
 
-2. When using VScode install the extension [Power User for dbt Core](https://marketplace.visualstudio.com/items?itemName=innoverio.vscode-dbt-power-user) or something similar.
+2. When using VScode we recommend to install the dbt extension [Power User for dbt Core](https://marketplace.visualstudio.com/items?itemName=innoverio.vscode-dbt-power-user) to gain:
 
-3. Install a package by adding a `packages.yml` to the dbt project root and pull it into the project by running `dbt deps`.
-The template engine will now offer the respective macro functionality.
+    - Code completion, function hinting, model references, etc.
+    - Ability to run dbt model queries inside of VS code out of their respective `model.sql` file by <kbd>Ctrl</kbd> + <kbd>Return</kbd>.
+    - Display of data lineage.
+    - ...
 
-## Observations
+3. Install a dbt packages like [dbt-utils](https://github.com/dbt-labs/dbt-utils) by adding a `packages.yml` or `dependencies.yml` to the dbt project root and pull it into the project by running `dbt deps`.
+Shortly afterwards, the [Jinja templating](https://jinja.palletsprojects.com/en/3.1.x/) engine will offer the respective macro functionalities.
 
-- [notes on auto-increment](https://discourse.getdbt.com/t/can-i-create-an-auto-incrementing-id-in-dbt/579/2)
+## Note on convenience features for happier coding
 
-## Features
-
-Convenience features included were:
+Convenience features included in this repo are:
 
 - A [Makefile](https://www.gnu.org/software/make/manual/) to set up the environments and call the features below.
 
@@ -216,3 +242,4 @@ is specified within the `.prettierrc` file.
 
 - [SQL commands](https://docs.getdbt.com/sql-reference) in dbt
 - [time-related macros for dbt](https://hub.getdbt.com/calogica/dbt_date/latest/)
+- [notes on auto-increment](https://discourse.getdbt.com/t/can-i-create-an-auto-incrementing-id-in-dbt/579/2)
