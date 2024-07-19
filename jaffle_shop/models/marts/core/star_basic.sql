@@ -28,4 +28,7 @@ final AS (
 
 )
 
-SELECT * FROM final ORDER BY customer_id, order_date, order_id
+SELECT * FROM final
+WHERE TRUE
+    AND order_date IS NOT NULL
+ORDER BY customer_id, order_date, order_id
